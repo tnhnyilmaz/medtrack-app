@@ -11,7 +11,13 @@ const MeasurementsCard = () => {
 
   return (
     <View style={{ gap: 10 }}>
-      <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center'}}>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <Text style={[styles.bigText, { color: colors.text, fontSize: 24 }]}>
           Günün Ölçümleri
         </Text>
@@ -42,7 +48,10 @@ const MeasurementsCard = () => {
           <Text style={{ color: colors.textSecondary }}>2 hours ago</Text>
         </Pressable>
 
-        <View style={styles.measurementsCard}>
+        <Pressable
+          onPress={() => router.push("/sugarMeasurementsScreen")}
+          style={styles.measurementsCard}
+        >
           <View
             style={[
               styles.measurementsIconContainer,
@@ -54,7 +63,7 @@ const MeasurementsCard = () => {
           <Text style={styles.measurementsTitleText}>Şeker</Text>
           <Text style={styles.measurementsValueText}>95</Text>
           <Text style={{ color: colors.textSecondary }}>4 hours ago</Text>
-        </View>
+        </Pressable>
       </View>
     </View>
   );
