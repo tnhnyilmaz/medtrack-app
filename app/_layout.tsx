@@ -1,6 +1,6 @@
-import { ThemeProvider } from '../src/contexts/ThemeContext';
-import { DeviceProvider } from '../src/contexts/DeviceContext';
 import { Stack } from "expo-router";
+import { DeviceProvider } from '../src/contexts/DeviceContext';
+import { ThemeProvider } from '../src/contexts/ThemeContext';
 
 export default function RootLayout() {
   return (
@@ -20,6 +20,12 @@ export default function RootLayout() {
             options={{
               animation: 'slide_from_bottom',
               presentation: 'modal'
+            }} 
+          />
+          <Stack.Screen 
+            name="bloodPressureScreen" 
+            options={{
+              animation: 'slide_from_right',
             }} 
           />
         </Stack>

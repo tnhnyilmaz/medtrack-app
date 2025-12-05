@@ -1,11 +1,13 @@
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import { useRouter } from "expo-router";
 import React from "react";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
 import styles from "../../styles/HomeScreenStyles";
 const MeasurementsCard = () => {
   const { colors } = useTheme();
+  const router = useRouter();
 
   return (
     <View style={{ gap: 10 }}>
@@ -19,7 +21,10 @@ const MeasurementsCard = () => {
         </Text>
       </View>
       <View style={styles.measurementsContainer}>
-        <View style={styles.measurementsCard}>
+        <Pressable
+          onPress={() => router.push("/bloodPressureScreen")}
+          style={styles.measurementsCard}
+        >
           <View
             style={[
               styles.measurementsIconContainer,
@@ -35,7 +40,7 @@ const MeasurementsCard = () => {
           <Text style={styles.measurementsTitleText}>Tansiyon</Text>
           <Text style={styles.measurementsValueText}>120/80</Text>
           <Text style={{ color: colors.textSecondary }}>2 hours ago</Text>
-        </View>
+        </Pressable>
 
         <View style={styles.measurementsCard}>
           <View
