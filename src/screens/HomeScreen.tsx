@@ -3,8 +3,8 @@ import { Text, View } from "react-native";
 import AppBar from "../components/HomeScreen/AppBar";
 import MeasurementsCard from "../components/HomeScreen/MeasurementsCard";
 import MedList from "../components/HomeScreen/MedList";
-import { useTheme } from "../contexts/ThemeContext";
 import { useDevice } from "../contexts/DeviceContext";
+import { useTheme } from "../contexts/ThemeContext";
 import styles from "../styles/HomeScreenStyles";
 const HomeScreen = () => {
   const { colors } = useTheme();

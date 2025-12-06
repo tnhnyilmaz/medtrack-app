@@ -4,12 +4,12 @@ export default StyleSheet.create({
     imgContainer: {
         width: 75,
         height: 75,
-        borderRadius: 50,
+        borderRadius: 70,
         overflow: 'hidden'
     },
     img: {
-        width: '100%',
-        height: '100%'
+        width: '80%',
+        height: '80%'
     },
     container: {
         flex: 1,
@@ -109,10 +109,10 @@ export default StyleSheet.create({
         fontSize: 32,
         fontWeight: '700',
     },
-    detailText:{
-        fontSize:14,
-        fontStyle:'italic',
-        fontWeight:'500',
+    detailText: {
+        fontSize: 14,
+        fontStyle: 'italic',
+        fontWeight: '500',
     },
-    
+
 });
