@@ -22,64 +22,64 @@ export default StyleSheet.create({
         marginBottom: 10,
         borderRadius: 20,
         padding: 5,
-        
-    },  
+
+    },
     dateTextActive: {
-        fontSize: 16,
+        fontSize: 13,
         fontWeight: 'bold',
         textAlign: 'center',
-        padding: 10,
+        padding: 6,
         color: "#fff",
-        borderRadius: 15,
+        borderRadius: 12,
     },
     dateTextInactive: {
-        fontSize: 16,
+        fontSize: 13,
         fontWeight: 'bold',
         textAlign: 'center',
-        padding: 10,
-        borderRadius: 15,
+        padding: 6,
+        borderRadius: 12,
     },
     dateSelection: {
         flexDirection: 'row',
         justifyContent: "space-around",
         alignItems: "center",
     },
-    iconContainer:{
-        width:50,
-        height:50,
-        borderRadius:10,
-        justifyContent:'center',
-        alignItems:'center',
+    iconContainer: {
+        width: 50,
+        height: 50,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    bloodCard:{
-        width:'100%',
-        minHeight:100,
-        borderRadius:16,
-        marginTop:20,
-        flexDirection:"row",
-        alignItems:'center',
-        gap:20,
-        padding:15,
-        justifyContent:"space-between",
+    bloodCard: {
+        width: '100%',
+        minHeight: 100,
+        borderRadius: 16,
+        marginTop: 20,
+        flexDirection: "row",
+        alignItems: 'center',
+        gap: 20,
+        padding: 15,
+        justifyContent: "space-between",
     },
-    bloodText:{
-        fontSize:22,
-        fontWeight:'bold',
+    bloodText: {
+        fontSize: 22,
+        fontWeight: 'bold',
 
     },
-    textStatus:{
-        backgroundColor:'#9e1919ff',
+    textStatus: {
+        backgroundColor: '#9e1919ff',
     },
-    addBtn:{
+    addBtn: {
         width: '100%',
         height: 50,
         borderRadius: 25,
         justifyContent: 'center',
         alignItems: 'center',
-        padding:10
+        padding: 10
     },
-    addBtnText:{
-        fontSize:16,
-        fontWeight:'bold',
+    addBtnText: {
+        fontSize: 16,
+        fontWeight: 'bold',
     }
 });

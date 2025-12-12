@@ -2,20 +2,32 @@ import MedClock from "@/src/components/AddMedicationScreen/MedClock";
 import MedDose from "@/src/components/AddMedicationScreen/MedDose";
 import MedName from "@/src/components/AddMedicationScreen/MedName";
 import MedTime from "@/src/components/AddMedicationScreen/MedTime";
-import React, { useState } from "react";
+import {
+  addMedicine,
+  addSchedule,
+  deleteSchedules,
+  getMedicineById,
+  getSchedules,
+  updateMedicine,
+} from "@/src/database/medicineRepository";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Modal,
   ScrollView,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../src/contexts/ThemeContext";
 import styles from "../src/styles/AddMedicationStyles";
+import MedForm from "@/src/components/AddMedicationScreen/MedForm";
 
 const AddMedicationScreen = () => {
+  const router = useRouter();
+  const { id } = useLocalSearchParams();
   const { colors } = useTheme();
   const [medName, setMedName] = useState("");
   const [durationValue, setDurationValue] = useState("");
@@ -27,13 +39,42 @@ const AddMedicationScreen = () => {
   const [tempHour, setTempHour] = useState("08");
   const [tempMinute, setTempMinute] = useState("00");
   const [withFood, setWithFood] = useState("");
-
- 
+  const [medicineForm, setMedicineForm] = useState("");
+  const [dosage, setDosage] = useState("");
 
   const updateTimeInput = (index: number, value: string) => {
     const newTimes = [...timeInputs];
     newTimes[index] = value;
     setTimeInputs(newTimes);
+  };
+
+  useEffect(() => {
+    if (id) {
+      loadMedicineData(Number(id));
+    }
+  }, [id]);
+
+  const loadMedicineData = async (medId: number) => {
+    try {
+      const medicine = await getMedicineById(medId);
+      if (medicine) {
+        setMedName(medicine.name);
+        setFrequency(medicine.frequency.toString());
+        setWithFood(medicine.instruction || "");
+        setMedicineForm(medicine.form || "");
+        setDosage(medicine.dosage || "");
+        if (medicine.form) {
+          setDurationType(medicine.form);
+          setDurationValue("1"); // Default or we need to store duration value too
+        }
+
+        const schedules = await getSchedules(medId);
+        setTimeInputs(schedules);
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Hata", "İlaç bilgileri yüklenemedi.");
+    }
   };
 
   const openTimePicker = (index: number) => {
@@ -53,7 +94,7 @@ const AddMedicationScreen = () => {
     setShowTimePicker(false);
   };
 
-  const validateAndSave = () => {
+  const validateAndSave = async () => {
     if (!medName.trim()) {
       Alert.alert("Uyarı", "Lütfen ilaç adını girin.");
       return;
@@ -78,36 +119,89 @@ const AddMedicationScreen = () => {
       return;
     }
 
-    Alert.alert("Başarılı", "İlaç başarıyla kaydedildi!");
+    try {
+      // 1. Save or Update Medicine
+      let targetId = Number(id);
+      if (id) {
+        await updateMedicine(targetId, {
+          id: targetId,
+          name: medName,
+          dosage: dosage,
+          form: medicineForm,
+          frequency: parseInt(frequency),
+          instruction: withFood,
+          start_date: new Date().toISOString(),
+        });
+        // Delete old schedules to replace with new ones
+        await deleteSchedules(targetId);
+      } else {
+        targetId = await addMedicine({
+          name: medName,
+          dosage: dosage,
+          form: medicineForm,
+          frequency: parseInt(frequency),
+          instruction: withFood,
+          start_date: new Date().toISOString(),
+        });
+      }
 
-    // Inputları sıfırla
-    setMedName("");
-    setDurationValue("");
-    setDurationType("");
-    setFrequency("");
-    setTimeInputs([]);
-    setWithFood("");
+      // 2. Save Schedules
+      if (parseInt(frequency) === 1) {
+        if (timeInputs[0]) {
+          await addSchedule(targetId, timeInputs[0]);
+        }
+      } else {
+        for (const time of timeInputs) {
+          if (time) {
+            await addSchedule(targetId, time);
+          }
+        }
+      }
+
+      Alert.alert(
+        "Başarılı",
+        id ? "İlaç güncellendi!" : "İlaç başarıyla kaydedildi!",
+        [{ text: "Tamam", onPress: () => router.back() }]
+      );
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Hata", "İlaç kaydedilirken bir sorun oluştu.");
+    }
   };
 
   return (
     <SafeAreaView style={[{ backgroundColor: colors.background }, { flex: 1 }]}>
       <View style={styles.container}>
-        <Text style={[styles.title, { color: colors.text }]}>İlaç Ekle</Text>
+        <Text style={[styles.title, { color: colors.text }]}>
+          {id ? "İlacı Düzenle" : "İlaç Ekle"}
+        </Text>
 
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={{ gap: 20 }}>
             <MedName medName={medName} setMedName={setMedName} />
+            <MedForm
+              medicineForm={medicineForm}
+              setMedicineForm={setMedicineForm}
+              dosage={dosage}
+              setDosage={setDosage}
+            />
             <MedTime
               durationValue={durationValue}
               setDurationValue={setDurationValue}
               durationType={durationType}
               setDurationType={setDurationType}
             />
-            <MedDose frequency={frequency} setFrequency={setFrequency} setTimeInputs={setTimeInputs} />
-          
+            <MedDose
+              frequency={frequency}
+              setFrequency={setFrequency}
+              setTimeInputs={setTimeInputs}
+            />
 
             {parseInt(frequency) > 1 && (
-              <MedClock timeInputs={timeInputs} openTimePicker={openTimePicker} />
+              <MedClock
+                timeInputs={timeInputs}
+                openTimePicker={openTimePicker}
+              />
             )}
 
             {parseInt(frequency) === 1 && (
@@ -359,7 +453,7 @@ const AddMedicationScreen = () => {
           }}
         >
           <Text style={{ color: "white", fontSize: 18, fontWeight: "bold" }}>
-            İlacı Kaydet
+            {id ? "İlacı Güncelle" : "İlacı Kaydet"}
           </Text>
         </TouchableOpacity>
       </View>

@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
-  Pressable,
   Text,
   TouchableOpacity,
   View,
@@ -12,134 +13,121 @@ import AddMeasurementModal from "../components/BloodPressureScreen/AddMeasuremen
 import BloodCard from "../components/BloodPressureScreen/BloodCard";
 import DateSelection from "../components/BloodPressureScreen/DateSelection";
 import TopBar from "../components/BloodPressureScreen/TopBar";
+import PeriodTabs from "../components/shared/PeriodTabs";
 import { useTheme } from "../contexts/ThemeContext";
+import {
+  addBloodPressure,
+  BloodPressure,
+  getBloodPressuresByPeriod,
+  PeriodType,
+} from "../database/measurementRepository";
 import styles from "../styles/BloodPressureStyle";
+
+// Helper function to calculate blood pressure status
+const calculateStatus = (systolic: number, diastolic: number): string => {
+  if (systolic < 90 || diastolic < 60) {
+    return "Düşük";
+  } else if (systolic >= 140 || diastolic >= 90) {
+    return "Yüksek";
+  } else if (systolic >= 120 || diastolic >= 80) {
+    return "Hafif Yüksek";
+  }
+  return "Normal";
+};
+
+// Helper function to format measure_time to display time
+const formatTime = (measureTime: string): string => {
+  try {
+    const date = new Date(measureTime);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  } catch {
+    return measureTime;
+  }
+};
+
+interface BloodCardData {
+  id: number;
+  systolic: number;
+  diastolic: number;
+  pulse?: number;
+  time: string;
+  status: string;
+  note: string;
+}
 
 const BloodPressureScreen = () => {
   const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState("Daily");
-  const tabs = ["Daily", "Weekly", "Monthly"];
-  const mockBloodData = [
-    {
-      id: 1,
-      systolic: 120,
-      diastolic: 80,
-      pulse: 72,
-      time: "09:30",
-      status: "Normal",
-      note: "Sabah ilacı alındıktan 1 saat sonra ölçüldü. Hafif baş ağrısı var.",
-    },
-    {
-      id: 2,
-      systolic: 135,
-      diastolic: 85,
-      pulse: 80,
-      time: "14:15",
-      status: "Yüksek",
-      note: "Öğle yemeğinde biraz tuzlu kaçırdım, ondan olabilir.",
-    },
-    {
-      id: 3,
-      systolic: 110,
-      diastolic: 70,
-      pulse: 65,
-      time: "21:00",
-      status: "Düşük",
-      note: "Yürüyüş sonrası dinlenme hali. Herhangi bir şikayet yok.",
-    },
-    {
-      id: 4,
-      systolic: 125,
-      diastolic: 82,
-      pulse: 78,
-      time: "23:30",
-      status: "Normal",
-      note: "Gece yatmadan önce kontrol.",
-    },
-    {
-      id: 5,
-      systolic: 120,
-      diastolic: 80,
-      pulse: 72,
-      time: "09:30",
-      status: "Normal",
-      note: "Sabah ilacı alındıktan 1 saat sonra ölçüldü. Hafif baş ağrısı var.",
-    },
-    {
-      id: 6,
-      systolic: 135,
-      diastolic: 85,
-      pulse: 80,
-      time: "14:15",
-      status: "Yüksek",
-      note: "Öğle yemeğinde biraz tuzlu kaçırdım, ondan olabilir.",
-    },
-    {
-      id: 7,
-      systolic: 110,
-      diastolic: 70,
-      pulse: 65,
-      time: "21:00",
-      status: "Düşük",
-      note: "Yürüyüş sonrası dinlenme hali. Herhangi bir şikayet yok.",
-    },
-    {
-      id: 8,
-      systolic: 125,
-      diastolic: 82,
-      pulse: 78,
-      time: "23:30",
-      status: "Normal",
-      note: "Gece yatmadan önce kontrol.",
-    },
-    {
-      id: 9,
-      systolic: 120,
-      diastolic: 80,
-      pulse: 72,
-      time: "09:30",
-      status: "Normal",
-      note: "Sabah ilacı alındıktan 1 saat sonra ölçüldü. Hafif baş ağrısı var.",
-    },
-    {
-      id: 10,
-      systolic: 135,
-      diastolic: 85,
-      pulse: 80,
-      time: "14:15",
-      status: "Yüksek",
-      note: "Öğle yemeğinde biraz tuzlu kaçırdım, ondan olabilir.",
-    },
-    {
-      id: 11,
-      systolic: 110,
-      diastolic: 70,
-      pulse: 65,
-      time: "21:00",
-      status: "Düşük",
-      note: "Yürüyüş sonrası dinlenme hali. Herhangi bir şikayet yok.",
-    },
-    {
-      id: 12,
-      systolic: 125,
-      diastolic: 82,
-      pulse: 78,
-      time: "23:30",
-      status: "Normal",
-      note: "Gece yatmadan önce kontrol.",
-    },
-  ];
-  // Prepare data for the chart
-  // Sorting data by time for better visualization if needed, but assuming mock data is ordered or we just take it as is.
-  // We need to reverse if the list is newest first, usually charts go left to right (oldest to newest).
-  // Mock data seems to be daily?
-  const chartDataSystolic = mockBloodData.map((item) => ({
+  const [activeTab, setActiveTab] = useState<PeriodType>("Daily");
+  const [bloodPressures, setBloodPressures] = useState<BloodCardData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch blood pressures from database based on selected period
+  const fetchBloodPressures = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await getBloodPressuresByPeriod(activeTab);
+      // Map database records to BloodCard format
+      const formattedData: BloodCardData[] = data.map((bp: BloodPressure) => ({
+        id: bp.id || 0,
+        systolic: bp.systolic,
+        diastolic: bp.diastolic,
+        pulse: bp.pulse,
+        time: formatTime(bp.measure_time),
+        status: calculateStatus(bp.systolic, bp.diastolic),
+        note: bp.note || "",
+      }));
+      setBloodPressures(formattedData);
+    } catch (error) {
+      console.error("Error fetching blood pressures:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [activeTab]);
+
+  // Reload data when screen gains focus or when activeTab changes
+  useFocusEffect(
+    useCallback(() => {
+      fetchBloodPressures();
+    }, [fetchBloodPressures])
+  );
+
+  // Handle saving new blood pressure measurement
+  const handleSave = async (data: {
+    systolic: number;
+    diastolic: number;
+    pulse: number;
+    time: string;
+    note: string;
+  }) => {
+    try {
+      await addBloodPressure({
+        systolic: data.systolic,
+        diastolic: data.diastolic,
+        pulse: data.pulse || undefined,
+        measure_time: new Date().toISOString(),
+        note: data.note,
+      });
+      // Refresh the list after saving
+      await fetchBloodPressures();
+    } catch (error) {
+      console.error("Error saving blood pressure:", error);
+    }
+  };
+
+  // Handle tab change
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab as PeriodType);
+  };
+
+  // Prepare data for the chart (reverse for chronological order)
+  const chartData = [...bloodPressures].reverse();
+  const chartDataSystolic = chartData.map((item) => ({
     value: item.systolic,
     label: item.time,
     dataPointText: item.systolic.toString(),
   }));
-  const chartDataDiastolic = mockBloodData.map((item) => ({
+  const chartDataDiastolic = chartData.map((item) => ({
     value: item.diastolic,
     dataPointText: item.diastolic.toString(),
   }));
@@ -148,96 +136,96 @@ const BloodPressureScreen = () => {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={styles.container}>
         <TopBar />
-        <View
-          style={[styles.dateContainer, { backgroundColor: colors.surface }]}
-        >
-          <View
-            style={[
-              styles.row,
-              {
-                gap: 5,
-                justifyContent: "space-around",
-                paddingHorizontal: 5,
-                paddingVertical: 5,
-              },
-            ]}
-          >
-            {tabs.map((tab) => (
-              <Pressable
-                key={tab}
-                onPress={() => setActiveTab(tab)}
-                style={{ flex: 1 }}
-              >
-                <Text
-                  style={[
-                    { textAlign: "center" },
-                    activeTab === tab
-                      ? [
-                          styles.dateTextActive,
-                          { backgroundColor: colors.success },
-                        ]
-                      : [
-                          styles.dateTextInactive,
-                          { color: colors.textSecondary },
-                        ],
-                  ]}
-                >
-                  {tab}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
+        <PeriodTabs activeTab={activeTab} onTabChange={handleTabChange} />
         <DateSelection />
         <View
-          style={{ height: 250, paddingVertical: 10, paddingHorizontal: 0 }}
+          style={{ height: 200, paddingVertical: 10, paddingHorizontal: 0 }}
         >
-          <LineChart
-            data={chartDataSystolic}
-            data2={chartDataDiastolic}
-            height={200}
-            showVerticalLines
-            spacing={44}
-            initialSpacing={20}
-            color1={colors.error || "red"}
-            color2={colors.primary || "blue"}
-            textColor1={colors.error || "red"}
-            textColor2={colors.primary || "blue"}
-            dataPointsHeight={6}
-            dataPointsWidth={6}
-            dataPointsColor1={colors.error || "red"}
-            dataPointsColor2={colors.primary || "blue"}
-            textShiftY={-2}
-            textShiftX={-5}
-            textFontSize={11}
-            thickness={2}
-            yAxisTextStyle={{ color: colors.textSecondary }}
-            xAxisLabelTextStyle={{ color: colors.textSecondary, fontSize: 10 }}
-            noOfSections={4}
-            yAxisThickness={0}
-            xAxisThickness={1}
-            xAxisColor={colors.border}
-            rulesType="solid"
-            rulesColor={colors.border ? colors.border + "40" : "#E0E0E0"}
-            curved
-            areaChart
-            startFillColor1={colors.error || "red"}
-            endFillColor1={colors.error || "red"}
-            startOpacity1={0.2}
-            endOpacity1={0.0}
-            startFillColor2={colors.primary || "blue"}
-            endFillColor2={colors.primary || "blue"}
-            startOpacity2={0.2}
-            endOpacity2={0.0}
-          />
+          {bloodPressures.length > 0 ? (
+            <LineChart
+              data={chartDataSystolic}
+              data2={chartDataDiastolic}
+              height={160}
+              showVerticalLines
+              spacing={44}
+              initialSpacing={20}
+              color1={colors.error || "red"}
+              color2={colors.primary || "blue"}
+              textColor1={colors.error || "red"}
+              textColor2={colors.primary || "blue"}
+              dataPointsHeight={6}
+              dataPointsWidth={6}
+              dataPointsColor1={colors.error || "red"}
+              dataPointsColor2={colors.primary || "blue"}
+              textShiftY={-2}
+              textShiftX={-5}
+              textFontSize={11}
+              thickness={2}
+              yAxisTextStyle={{ color: colors.textSecondary }}
+              xAxisLabelTextStyle={{
+                color: colors.textSecondary,
+                fontSize: 10,
+              }}
+              noOfSections={4}
+              yAxisThickness={0}
+              xAxisThickness={1}
+              xAxisColor={colors.border}
+              rulesType="solid"
+              rulesColor={colors.border ? colors.border + "40" : "#E0E0E0"}
+              curved
+              areaChart
+              startFillColor1={colors.error || "red"}
+              endFillColor1={colors.error || "red"}
+              startOpacity1={0.2}
+              endOpacity1={0.0}
+              startFillColor2={colors.primary || "blue"}
+              endFillColor2={colors.primary || "blue"}
+              startOpacity2={0.2}
+              endOpacity2={0.0}
+            />
+          ) : (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: colors.textSecondary }}>
+                {loading ? "" : "Bu dönemde ölçüm yok"}
+              </Text>
+            </View>
+          )}
         </View>
-        <FlatList
-          data={mockBloodData}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => <BloodCard data={item} />}
-          contentContainerStyle={{ paddingBottom: 20 }}
-          showsVerticalScrollIndicator={false}
-        />
+        {loading ? (
+          <View
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        ) : (
+          <FlatList
+            data={bloodPressures}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => <BloodCard data={item} />}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  paddingTop: 40,
+                }}
+              >
+                <Text style={{ color: colors.textSecondary }}>
+                  Bu dönemde kan basıncı ölçümü yok.
+                </Text>
+              </View>
+            }
+          />
+        )}
       </View>
       <TouchableOpacity
         style={{ padding: 15 }}
@@ -252,9 +240,7 @@ const BloodPressureScreen = () => {
       <AddMeasurementModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
-        onSave={(data) => {
-          console.log("Saved measurement:", data);
-        }}
+        onSave={handleSave}
       />
     </SafeAreaView>
   );
