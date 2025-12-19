@@ -1,96 +1,235 @@
 import { useTheme } from "@/src/contexts/ThemeContext";
-import Entypo from "@expo/vector-icons/Entypo";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { TodayMedication } from "@/src/database/medicineRepository";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
-import { Text, View } from "react-native";
-import styles from "../../styles/HomeScreenStyles";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-const MedTile = ({med}: {med: {name: string; time: string; status: string}}) => {
+interface MedTileProps {
+  med: TodayMedication;
+  onPress?: () => void;
+}
+
+const MedTile = ({ med, onPress }: MedTileProps) => {
   const { colors } = useTheme();
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "taken":
-        return <Entypo name="check" size={24} color="white" />;
+        return <Ionicons name="checkmark" size={18} color="#FFFFFF" />;
+      case "taken_late":
+        return <Ionicons name="checkmark" size={18} color="#FFFFFF" />;
       case "missed":
-        return <MaterialIcons name="close" size={24} color="white" />;
-      case "future":
-        return <MaterialIcons name="schedule" size={24} color={"white"} />;
+        return <Ionicons name="close" size={18} color="#FFFFFF" />;
+      case "pending":
+        return <Ionicons name="time-outline" size={18} color="#3B82F6" />;
       default:
-        return <MaterialIcons name="schedule" size={24} color="white" />;
+        return (
+          <Ionicons
+            name="time-outline"
+            size={18}
+            color={colors.textSecondary}
+          />
+        );
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusStyle = (status: string) => {
     switch (status) {
       case "taken":
-        return colors.success;
+        return {
+          backgroundColor: colors.secondary,
+          borderWidth: 0,
+        };
+      case "taken_late":
+        return {
+          backgroundColor: "#FF9800", // Orange for late
+          borderWidth: 0,
+        };
+      case "missed":
+        return {
+          backgroundColor: colors.error,
+          borderWidth: 0,
+        };
+      case "pending":
+        return {
+          backgroundColor: "transparent",
+          borderWidth: 2,
+          borderColor: "#3B82F6",
+        };
+      default:
+        return {
+          backgroundColor: colors.gray,
+          borderWidth: 0,
+        };
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "taken":
+        return "Alındı";
+      case "taken_late":
+        return "Geç Alındı";
+      case "missed":
+        return "Kaçırıldı";
+      case "pending":
+        return "Bekliyor";
+      default:
+        return "";
+    }
+  };
+
+  const getStatusTextColor = (status: string) => {
+    switch (status) {
+      case "taken":
+        return colors.secondary;
+      case "taken_late":
+        return "#FF9800";
       case "missed":
         return colors.error;
-      case "future":
-        return colors.gray;
+      case "pending":
+        return "#3B82F6";
       default:
         return colors.textSecondary;
     }
   };
+
+  const getMedicineIconConfig = (status: string) => {
+    switch (status) {
+      case "missed":
+        return {
+          backgroundColor: "#FEE2E2",
+          iconColor: "#EF4444",
+        };
+      case "taken":
+        return {
+          backgroundColor: "#DCFCE7",
+          iconColor: "#22C55E",
+        };
+      case "taken_late":
+        return {
+          backgroundColor: "#FFF3E0",
+          iconColor: "#FF9800",
+        };
+      case "pending":
+        return {
+          backgroundColor: "#DBEAFE",
+          iconColor: "#3B82F6",
+        };
+      default:
+        return {
+          backgroundColor: colors.lowSuccess,
+          iconColor: colors.secondary,
+        };
+    }
+  };
+
+  const iconConfig = getMedicineIconConfig(med.status);
+  const displayTime = med.schedule_time;
+  const displayInfo = med.dosage
+    ? `${med.dosage}${med.instruction ? ` • ${med.instruction}` : ""}`
+    : med.instruction || "";
+
   return (
-    <View style={{ paddingVertical: 10 }}>
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <View style={{ flexDirection: "row" }}>
-          <View
-            style={{
-              height: 50,
-              width: 50,
-              backgroundColor: colors.lowSuccess,
-              borderRadius: 5,
-              marginRight: 10,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <MaterialIcons name="medication" size={20} color={colors.success} />
-          </View>
-          <View>
-            <Text
-              style={[
-                styles.contextTitle,
-                { color: colors.text, fontSize: 16 },
-              ]}
-            >
-              {med.name}
-            </Text>
-            <Text
-              style={[styles.subContextTitle, { color: colors.textSecondary }]}
-            >
-              {med.time}
-            </Text>
-          </View>
-        </View>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={onPress}
+      activeOpacity={0.7}
+      disabled={!onPress}
+    >
+      <View style={styles.leftSection}>
+        {/* Medicine Icon */}
         <View
           style={[
-            styles.medCheckContainer,
-            { backgroundColor: getStatusColor(med.status) },
+            styles.medicineIconContainer,
+            { backgroundColor: iconConfig.backgroundColor },
           ]}
         >
-          {getStatusIcon(med.status)}
+          <MaterialCommunityIcons
+            name="pill"
+            size={24}
+            color={iconConfig.iconColor}
+          />
+        </View>
+
+        {/* Medicine Info */}
+        <View style={styles.infoContainer}>
+          <Text style={[styles.medicineName, { color: colors.text }]}>
+            {med.name}
+          </Text>
+          <Text style={styles.timeStatus}>
+            <Text style={{ color: colors.textSecondary }}>{displayTime}</Text>
+            <Text style={{ color: colors.textSecondary }}> • </Text>
+            <Text style={{ color: getStatusTextColor(med.status) }}>
+              {getStatusText(med.status)}
+            </Text>
+            {med.taken_time && med.status === "taken_late" && (
+              <>
+                <Text style={{ color: colors.textSecondary }}>
+                  {" "}
+                  ({med.taken_time})
+                </Text>
+              </>
+            )}
+          </Text>
+          {displayInfo ? (
+            <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+              {displayInfo}
+            </Text>
+          ) : null}
         </View>
       </View>
-      <View
-        style={{
-          backgroundColor: colors.divider,
-          height: 1,
-          borderRadius: 5,
-          marginTop: 10,
-        }}
-      ></View>
-    </View>
+
+      {/* Status Icon */}
+      <View style={[styles.statusIcon, getStatusStyle(med.status)]}>
+        {getStatusIcon(med.status)}
+      </View>
+    </TouchableOpacity>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+  },
+  leftSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  medicineIconContainer: {
+    height: 48,
+    width: 48,
+    borderRadius: 12,
+    marginRight: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  infoContainer: {
+    flex: 1,
+  },
+  medicineName: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 2,
+  },
+  timeStatus: {
+    fontSize: 13,
+  },
+  infoText: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  statusIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
 
 export default MedTile;

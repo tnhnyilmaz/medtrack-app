@@ -1,49 +1,106 @@
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
   Image,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../contexts/ThemeContext";
+import { useUser } from "../contexts/UserContext";
+
+const DEFAULT_AVATAR =
+  "https://thumbs.dreamstime.com/b/unknown-man-profile-avatar-vector-male-office-icon-potrait-175425661.jpg";
 
 const ProfileScreen = () => {
-  const { colors } = useTheme();
+  const { colors, toggleTheme, isDark } = useTheme();
+  const { user, updateUserPhoto } = useUser();
   const router = useRouter();
+
+  const formatBirthday = (date: Date | null) => {
+    if (!date) return "Belirtilmedi";
+    return date.toLocaleDateString("tr-TR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  const getGenderDisplay = (gender: "male" | "female" | null) => {
+    if (!gender) return "Belirtilmedi";
+    return gender === "male" ? "Erkek" : "Kadın";
+  };
+
+  const displayName = user.name || "Kullanıcı";
+  const displayEmail = user.email || "email@example.com";
+  const photoUri = user.photo || DEFAULT_AVATAR;
+
+  const handlePickPhoto = async () => {
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      alert("Galeriye erişim izni gerekli!");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      await updateUserPhoto(result.assets[0].uri);
+    }
+  };
 
   const menuItems = [
     {
-      icon: <Ionicons name="settings-outline" size={24} color="#4A90E2" />,
-      title: "Account Settings",
+      icon: <Ionicons name="settings-outline" size={24} color="#4CAF50" />,
+      title: "Hesap Ayarları",
       onPress: () => console.log("Account Settings"),
     },
     {
       icon: <Ionicons name="notifications-outline" size={24} color="#50E3C2" />,
-      title: "Notifications",
+      title: "Bildirimler",
       onPress: () => console.log("Notifications"),
     },
     {
-      icon: <Ionicons name="help-circle-outline" size={24} color="#4A90E2" />,
-      title: "Help & Support",
+      icon: <Ionicons name="help-circle-outline" size={24} color="#4CAF50" />,
+      title: "Yardım & Destek",
       onPress: () => console.log("Help & Support"),
     },
   ];
 
   const infoItems = [
     {
-      icon: <MaterialIcons name="cake" size={24} color="#4A90E2" />,
-      label: "Date of Birth",
-      value: "August 15, 1985",
+      icon: <MaterialIcons name="cake" size={24} color="#4CAF50" />,
+      label: "Doğum Tarihi",
+      value: formatBirthday(user.birthday),
     },
     {
-      icon: <Feather name="calendar" size={24} color="#4A90E2" />,
-      label: "Member Since",
-      value: "January 10, 2022",
+      icon: (
+        <Ionicons
+          name={user.gender === "female" ? "woman" : "man"}
+          size={24}
+          color={user.gender === "female" ? "#E91E63" : "#4CAF50"}
+        />
+      ),
+      label: "Cinsiyet",
+      value: getGenderDisplay(user.gender),
+    },
+    {
+      icon: <Feather name="mail" size={24} color="#4CAF50" />,
+      label: "E-posta",
+      value: displayEmail,
     },
   ];
 
@@ -58,29 +115,47 @@ const ProfileScreen = () => {
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>
-          Profile
-        </Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Profil</Text>
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.profileSection}>
-          <View style={styles.avatarContainer}>
-            <Image
-              source={{
-                uri: "https://thumbs.dreamstime.com/b/unknown-man-profile-avatar-vector-male-office-icon-potrait-175425661.jpg",
-              }}
-              style={styles.avatar}
-            />
-            <View style={styles.editIconContainer}>
-              <MaterialIcons name="edit" size={16} color="#fff" />
+          <TouchableOpacity onPress={handlePickPhoto} activeOpacity={0.8}>
+            <View style={styles.avatarContainer}>
+              {user.photo ? (
+                <Image source={{ uri: photoUri }} style={styles.avatar} />
+              ) : (
+                <View
+                  style={[
+                    styles.avatar,
+                    {
+                      backgroundColor: colors.surface,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={user.gender === "female" ? "woman" : "man"}
+                    size={40}
+                    color={user.gender === "female" ? "#E91E63" : "#4CAF50"}
+                  />
+                </View>
+              )}
+              <View style={styles.editIconContainer}>
+                <MaterialIcons name="edit" size={16} color="#fff" />
+              </View>
             </View>
-          </View>
+          </TouchableOpacity>
           <Text style={[styles.nameText, { color: colors.text }]}>
-            Alex Doe
+            {displayName}
           </Text>
-          <Text style={styles.emailText}>alex.doe@example.com</Text>
+          <Text style={styles.emailText}>{displayEmail}</Text>
         </View>
 
         <View style={styles.infoSection}>
@@ -109,7 +184,7 @@ const ProfileScreen = () => {
             >
               <View style={styles.menuItemLeft}>
                 <View
-                  style={[styles.menuIconBox, { backgroundColor: "#F0F4FF" }]}
+                  style={[styles.menuIconBox, { backgroundColor: "#E8F5E9" }]}
                 >
                   {item.icon}
                 </View>
@@ -126,8 +201,37 @@ const ProfileScreen = () => {
           ))}
         </View>
 
+        {/* Theme Switch */}
+        <View
+          style={[styles.themeSection, { backgroundColor: colors.surface }]}
+        >
+          <View style={styles.menuItemLeft}>
+            <View
+              style={[
+                styles.menuIconBox,
+                { backgroundColor: isDark ? "#2C2C2E" : "#FFF3E0" },
+              ]}
+            >
+              <Ionicons
+                name={isDark ? "moon" : "sunny"}
+                size={24}
+                color={isDark ? "#FFD60A" : "#FF9500"}
+              />
+            </View>
+            <Text style={[styles.menuItemText, { color: colors.text }]}>
+              {isDark ? "Karanlık Tema" : "Aydınlık Tema"}
+            </Text>
+          </View>
+          <Switch
+            value={isDark}
+            onValueChange={toggleTheme}
+            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
+
         <TouchableOpacity style={styles.logoutButton}>
-          <Text style={styles.logoutText}>Log Out</Text>
+          <Text style={styles.logoutText}>Çıkış Yap</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -154,7 +258,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 20,
-    paddingBottom: 30,
+    paddingBottom: 10,
   },
   profileSection: {
     alignItems: "center",
@@ -175,7 +279,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: "#4A90E2",
+    backgroundColor: "#4CAF50",
     width: 30,
     height: 30,
     borderRadius: 15,
@@ -252,6 +356,19 @@ const styles = StyleSheet.create({
   menuItemText: {
     fontSize: 16,
     fontWeight: "500",
+  },
+  themeSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 15,
+    borderRadius: 15,
+    marginBottom: 25,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
   },
   logoutButton: {
     width: "100%",

@@ -1,24 +1,38 @@
 import { UserProvider } from "@/src/contexts/UserContext";
+import { requestNotificationPermissions } from "@/src/services/notificationService";
 import { Stack } from "expo-router";
+import { useEffect } from "react";
 import { DeviceProvider } from "../src/contexts/DeviceContext";
 import { ThemeProvider } from "../src/contexts/ThemeContext";
 
 export default function RootLayout() {
+  // Request notification permissions on app start
+  useEffect(() => {
+    requestNotificationPermissions();
+  }, []);
+
   return (
     <ThemeProvider>
       <UserProvider>
         <DeviceProvider>
           <Stack
-            initialRouteName="index"
+            initialRouteName="(tabs)"
             screenOptions={{
               headerShown: false,
               animation: "slide_from_right",
               animationDuration: 300,
             }}
           >
-            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen
               name="addMedication"
+              options={{
+                animation: "slide_from_bottom",
+                presentation: "modal",
+              }}
+            />
+            <Stack.Screen
+              name="addMeasurement"
               options={{
                 animation: "slide_from_bottom",
                 presentation: "modal",
@@ -31,7 +45,13 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
-              name="profileScreen"
+              name="sugarMeasurementsScreen"
+              options={{
+                animation: "slide_from_right",
+              }}
+            />
+            <Stack.Screen
+              name="medicationsScreen"
               options={{
                 animation: "slide_from_right",
               }}

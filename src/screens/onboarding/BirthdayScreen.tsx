@@ -27,7 +27,7 @@ const BirthdayScreen = () => {
 
   const handleNext = () => {
     updateUser({ birthday: date });
-    router.push("/onboarding/photo");
+    router.push("/onboarding/gender");
   };
 
   return (

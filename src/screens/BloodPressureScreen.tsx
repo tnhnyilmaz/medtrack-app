@@ -1,5 +1,5 @@
 import { useFocusEffect } from "@react-navigation/native";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -55,12 +55,29 @@ interface BloodCardData {
   note: string;
 }
 
-const BloodPressureScreen = () => {
+interface BloodPressureScreenProps {
+  autoOpenModal?: boolean;
+}
+
+const BloodPressureScreen = ({
+  autoOpenModal = false,
+}: BloodPressureScreenProps) => {
   const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<PeriodType>("Daily");
   const [bloodPressures, setBloodPressures] = useState<BloodCardData[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Auto-open modal if requested
+  useEffect(() => {
+    if (autoOpenModal) {
+      // Small delay to ensure screen is fully loaded
+      const timer = setTimeout(() => {
+        setModalVisible(true);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [autoOpenModal]);
 
   // Fetch blood pressures from database based on selected period
   const fetchBloodPressures = useCallback(async () => {

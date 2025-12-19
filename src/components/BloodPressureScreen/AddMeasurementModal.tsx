@@ -87,7 +87,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                     <AntDesign name="close" size={24} color={colors.text} />
                   </Pressable>
                   <Text style={[localStyles.title, { color: colors.text }]}>
-                    Add Blood Pressure
+                    Tansiyon Ekle
                   </Text>
                   <View style={{ width: 24 }} />
                 </View>
@@ -96,7 +96,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                 <Text
                   style={[localStyles.label, { color: colors.textSecondary }]}
                 >
-                  Measurement Time
+                  Ölçüm Zamanı
                 </Text>
                 <View
                   style={[
@@ -125,7 +125,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                             : colors.textSecondary,
                       }}
                     >
-                      Now
+                      Şimdi
                     </Text>
                   </Pressable>
                   <Pressable
@@ -149,7 +149,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                             : colors.textSecondary,
                       }}
                     >
-                      Custom
+                      Özel
                     </Text>
                   </Pressable>
                 </View>
@@ -163,7 +163,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                         { color: colors.textSecondary },
                       ]}
                     >
-                      Systolic (SYS)
+                      Sistolik (SYS)
                     </Text>
                     <View
                       style={[
@@ -193,7 +193,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                         { color: colors.textSecondary },
                       ]}
                     >
-                      Diastolic (DIA)
+                      Diastolik (DIA)
                     </Text>
                     <View
                       style={[
@@ -223,7 +223,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                   <Text
                     style={[localStyles.label, { color: colors.textSecondary }]}
                   >
-                    Pulse
+                    Nabız
                   </Text>
                   <View
                     style={[
@@ -250,7 +250,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                   <Text
                     style={[localStyles.label, { color: colors.textSecondary }]}
                   >
-                    Note
+                    Not
                   </Text>
                   <View
                     style={[
@@ -271,7 +271,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                           textAlignVertical: "top",
                         },
                       ]}
-                      placeholder="Add a note..."
+                      placeholder="Not ekle..."
                       placeholderTextColor={colors.textSecondary}
                       multiline
                       value={note}
@@ -288,9 +288,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                   ]}
                   onPress={handleSave}
                 >
-                  <Text style={localStyles.saveButtonText}>
-                    Save Measurement
-                  </Text>
+                  <Text style={localStyles.saveButtonText}>Ölçümü Kaydet</Text>
                 </Pressable>
               </View>
             </KeyboardAvoidingView>

@@ -46,7 +46,7 @@ const PhotoScreen = () => {
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={[styles.stepText, { color: colors.primary }]}>
-            Step 4 of 4
+            Adım 5 / 5
           </Text>
           <Text style={[styles.title, { color: colors.text }]}>
             Add a profile photo

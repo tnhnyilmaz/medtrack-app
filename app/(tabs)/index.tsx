@@ -1,10 +1,10 @@
 import { Redirect } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
-import { useTheme } from "../src/contexts/ThemeContext";
-import { useUser } from "../src/contexts/UserContext";
-import HomeScreen from "../src/screens/HomeScreen";
+import { useTheme } from "../../src/contexts/ThemeContext";
+import { useUser } from "../../src/contexts/UserContext";
+import HomeScreen from "../../src/screens/HomeScreen";
 
-export default function Index() {
+export default function TabIndex() {
   const { colors } = useTheme();
   const { isOnboardingCompleted, isLoading } = useUser();
 

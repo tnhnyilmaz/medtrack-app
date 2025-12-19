@@ -1,10 +1,12 @@
+import { useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
-import { useTheme } from '../src/contexts/ThemeContext';
+import { useTheme } from "../src/contexts/ThemeContext";
 import BloodPressureScreen from "../src/screens/BloodPressureScreen";
 
 export default function BloodPressure() {
   const { colors } = useTheme();
-  
+  const { openModal } = useLocalSearchParams<{ openModal?: string }>();
+
   return (
     <View
       style={{
@@ -12,7 +14,7 @@ export default function BloodPressure() {
         backgroundColor: colors.background,
       }}
     >
-      <BloodPressureScreen/>
+      <BloodPressureScreen autoOpenModal={openModal === "true"} />
     </View>
   );
 }

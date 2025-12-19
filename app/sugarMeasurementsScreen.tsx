@@ -1,9 +1,11 @@
+import { useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
 import { useTheme } from "../src/contexts/ThemeContext";
 import SugarMeasurementsScreen from "../src/screens/SugarMeasurementsScreen";
 
 export default function SugarMeasurements() {
   const { colors } = useTheme();
+  const { openModal } = useLocalSearchParams<{ openModal?: string }>();
 
   return (
     <View
@@ -12,7 +14,7 @@ export default function SugarMeasurements() {
         backgroundColor: colors.background,
       }}
     >
-      <SugarMeasurementsScreen />
+      <SugarMeasurementsScreen autoOpenModal={openModal === "true"} />
     </View>
   );
 }

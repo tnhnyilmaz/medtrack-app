@@ -102,6 +102,24 @@ export const getBloodSugarsByPeriod = async (period: PeriodType): Promise<BloodS
     );
 }
 
+// Get the latest blood pressure measurement
+export const getLatestBloodPressure = async (): Promise<BloodPressure | null> => {
+    const db = await getDB();
+    const result = await db.getFirstAsync<BloodPressure>(
+        'SELECT * FROM blood_pressure ORDER BY measure_time DESC LIMIT 1'
+    );
+    return result || null;
+};
+
+// Get the latest blood sugar measurement
+export const getLatestBloodSugar = async (): Promise<BloodSugar | null> => {
+    const db = await getDB();
+    const result = await db.getFirstAsync<BloodSugar>(
+        'SELECT * FROM blood_sugar ORDER BY measure_time DESC LIMIT 1'
+    );
+    return result || null;
+};
+
 // Clear all measurement data (useful before seeding)
 export const clearMeasurementData = async () => {
     const db = await getDB();

@@ -1,5 +1,5 @@
 import { useFocusEffect } from "@react-navigation/native";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -59,7 +59,13 @@ interface SugarCardData {
   note: string;
 }
 
-const SugarMeasurementsScreen = () => {
+interface SugarMeasurementsScreenProps {
+  autoOpenModal?: boolean;
+}
+
+const SugarMeasurementsScreen = ({
+  autoOpenModal = false,
+}: SugarMeasurementsScreenProps) => {
   const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<PeriodType>("Daily");
@@ -67,6 +73,17 @@ const SugarMeasurementsScreen = () => {
     []
   );
   const [loading, setLoading] = useState(true);
+
+  // Auto-open modal if requested
+  useEffect(() => {
+    if (autoOpenModal) {
+      // Small delay to ensure screen is fully loaded
+      const timer = setTimeout(() => {
+        setModalVisible(true);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [autoOpenModal]);
 
   // Fetch sugar measurements from database based on selected period
   const fetchSugarMeasurements = useCallback(async () => {

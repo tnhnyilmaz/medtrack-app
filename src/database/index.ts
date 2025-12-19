@@ -1,5 +1,4 @@
 import * as SQLite from 'expo-sqlite';
-import { seedMeasurementData } from './measurementRepository';
 
 const DB_NAME = 'medtrack.db';
 
@@ -24,7 +23,9 @@ export const initDB = async () => {
                     form TEXT,
                     frequency INTEGER,
                     instruction TEXT,
-                    start_date TEXT NOT NULL
+                    start_date TEXT NOT NULL,
+                    schedule_type TEXT DEFAULT 'daily',
+                    schedule_days TEXT
                 );
 
                 CREATE TABLE IF NOT EXISTS schedules (
@@ -60,16 +61,64 @@ export const initDB = async () => {
                     measure_time TEXT NOT NULL,
                     note TEXT
                 );
+
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY NOT NULL,
+                    name TEXT NOT NULL,
+                    email TEXT,
+                    birthday TEXT,
+                    gender TEXT,
+                    photo TEXT,
+                    created_at TEXT NOT NULL
+                );
             `);
 
             console.log("Database initialized successfully");
 
-            // Seed sample measurement data (only runs if no data exists)
-            if (!seedingDone) {
-                seedingDone = true;
-                // Run seeding in background to not block DB init
-                seedMeasurementData().catch(err => console.error('Seeding error:', err));
+            // Run migrations for existing databases
+            try {
+                // Check if schedule_type column exists, if not add it
+                const tableInfo = await db.getAllAsync<{ name: string }>(
+                    "PRAGMA table_info(medicines)"
+                );
+                const columnNames = tableInfo.map(col => col.name);
+
+                if (!columnNames.includes('schedule_type')) {
+                    await db.execAsync(`
+                        ALTER TABLE medicines ADD COLUMN schedule_type TEXT DEFAULT 'daily';
+                    `);
+                    console.log("Added schedule_type column");
+                }
+
+                if (!columnNames.includes('schedule_days')) {
+                    await db.execAsync(`
+                        ALTER TABLE medicines ADD COLUMN schedule_days TEXT;
+                    `);
+                    console.log("Added schedule_days column");
+                }
+            } catch (migrationError) {
+                console.log("Migration check:", migrationError);
             }
+
+            // Clean up orphaned records (schedules/intake_logs with no matching medicine)
+            try {
+                await db.runAsync(`
+                    DELETE FROM schedules WHERE medicine_id NOT IN (SELECT id FROM medicines)
+                `);
+                await db.runAsync(`
+                    DELETE FROM intake_logs WHERE medicine_id NOT IN (SELECT id FROM medicines)
+                `);
+                console.log("Cleaned up orphaned records");
+            } catch (cleanupError) {
+                console.log("Cleanup check:", cleanupError);
+            }
+
+            // NOTE: Seed data disabled for production
+            // Uncomment below for development/testing only
+            // if (!seedingDone) {
+            //     seedingDone = true;
+            //     seedMeasurementData().catch(err => console.error('Seeding error:', err));
+            // }
 
             return db;
         } catch (error) {

@@ -1,10 +1,17 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import {
+  clearUser,
+  getUser,
+  saveUser,
+  userExists,
+} from "../database/userRepository";
 
 interface UserProfile {
   name: string;
   email: string;
   birthday: Date | null;
+  gender: "male" | "female" | null;
   photo: string | null;
 }
 
@@ -13,6 +20,7 @@ interface UserContextProps {
   isOnboardingCompleted: boolean;
   isLoading: boolean;
   updateUser: (data: Partial<UserProfile>) => void;
+  updateUserPhoto: (photoUri: string) => Promise<void>;
   completeOnboarding: () => Promise<void>;
   resetOnboarding: () => Promise<void>;
 }
@@ -26,6 +34,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     name: "",
     email: "",
     birthday: null,
+    gender: null,
     photo: null,
   });
   const [isOnboardingCompleted, setIsOnboardingCompleted] = useState(false);
@@ -37,20 +46,43 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const loadUserData = async () => {
     try {
-      const storedUser = await AsyncStorage.getItem("userProfile");
-      const onboarded = await AsyncStorage.getItem("isOnboardingCompleted");
+      // Check if user exists in SQLite database
+      const exists = await userExists();
 
-      if (storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        // Correctly restore Date object
-        if (parsedUser.birthday) {
-          parsedUser.birthday = new Date(parsedUser.birthday);
+      if (exists) {
+        const dbUser = await getUser();
+        if (dbUser) {
+          setUser({
+            name: dbUser.name,
+            email: dbUser.email,
+            birthday: dbUser.birthday ? new Date(dbUser.birthday) : null,
+            gender: dbUser.gender,
+            photo: dbUser.photo,
+          });
+          setIsOnboardingCompleted(true);
         }
-        setUser(parsedUser);
-      }
-
-      if (onboarded === "true") {
-        setIsOnboardingCompleted(true);
+      } else {
+        // Fallback: Check AsyncStorage for backward compatibility
+        const onboarded = await AsyncStorage.getItem("isOnboardingCompleted");
+        if (onboarded === "true") {
+          const storedUser = await AsyncStorage.getItem("userProfile");
+          if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+            if (parsedUser.birthday) {
+              parsedUser.birthday = new Date(parsedUser.birthday);
+            }
+            setUser(parsedUser);
+            // Migrate to SQLite
+            await saveUser({
+              name: parsedUser.name,
+              email: parsedUser.email,
+              birthday: parsedUser.birthday?.toISOString() || null,
+              gender: parsedUser.gender,
+              photo: parsedUser.photo,
+            });
+          }
+          setIsOnboardingCompleted(true);
+        }
       }
     } catch (error) {
       console.error("Failed to load user data:", error);
@@ -62,21 +94,39 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   const updateUser = (data: Partial<UserProfile>) => {
     setUser((prev) => {
       const newUser = { ...prev, ...data };
-      saveUserData(newUser);
       return newUser;
     });
   };
 
-  const saveUserData = async (userData: UserProfile) => {
+  const updateUserPhoto = async (photoUri: string) => {
     try {
-      await AsyncStorage.setItem("userProfile", JSON.stringify(userData));
+      const updatedUser = { ...user, photo: photoUri };
+      setUser(updatedUser);
+      // Save to database
+      await saveUser({
+        name: updatedUser.name,
+        email: updatedUser.email,
+        birthday: updatedUser.birthday?.toISOString() || null,
+        gender: updatedUser.gender,
+        photo: photoUri,
+      });
     } catch (error) {
-      console.error("Failed to save user data:", error);
+      console.error("Failed to update photo:", error);
     }
   };
 
   const completeOnboarding = async () => {
     try {
+      // Save user to SQLite database
+      await saveUser({
+        name: user.name,
+        email: user.email,
+        birthday: user.birthday?.toISOString() || null,
+        gender: user.gender,
+        photo: user.photo,
+      });
+
+      // Also set AsyncStorage flag for backward compatibility
       await AsyncStorage.setItem("isOnboardingCompleted", "true");
       setIsOnboardingCompleted(true);
     } catch (error) {
@@ -86,9 +136,20 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const resetOnboarding = async () => {
     try {
+      // Clear SQLite user data
+      await clearUser();
+
+      // Clear AsyncStorage
       await AsyncStorage.removeItem("isOnboardingCompleted");
       await AsyncStorage.removeItem("userProfile");
-      setUser({ name: "", email: "", birthday: null, photo: null });
+
+      setUser({
+        name: "",
+        email: "",
+        birthday: null,
+        gender: null,
+        photo: null,
+      });
       setIsOnboardingCompleted(false);
     } catch (error) {
       console.error("Failed to reset onboarding:", error);
@@ -102,6 +163,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         isOnboardingCompleted,
         isLoading,
         updateUser,
+        updateUserPhoto,
         completeOnboarding,
         resetOnboarding,
       }}

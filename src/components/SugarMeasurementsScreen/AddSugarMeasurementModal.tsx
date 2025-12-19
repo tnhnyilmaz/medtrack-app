@@ -86,7 +86,7 @@ const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
                     <AntDesign name="close" size={24} color={colors.text} />
                   </Pressable>
                   <Text style={[localStyles.title, { color: colors.text }]}>
-                    Add Sugar Measurement
+                    Şeker Ölçümü Ekle
                   </Text>
                   <View style={{ width: 24 }} />
                 </View>
@@ -95,7 +95,7 @@ const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
                 <Text
                   style={[localStyles.label, { color: colors.textSecondary }]}
                 >
-                  Measurement Time
+                  Ölçüm Zamanı
                 </Text>
                 <View
                   style={[
@@ -124,7 +124,7 @@ const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
                             : colors.textSecondary,
                       }}
                     >
-                      Now
+                      Şimdi
                     </Text>
                   </Pressable>
                   <Pressable
@@ -148,7 +148,7 @@ const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
                             : colors.textSecondary,
                       }}
                     >
-                      Custom
+                      Özel
                     </Text>
                   </Pressable>
                 </View>
@@ -158,7 +158,7 @@ const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
                   <Text
                     style={[localStyles.label, { color: colors.textSecondary }]}
                   >
-                    Sugar Level
+                    Şeker Seviyesi
                   </Text>
                   <View
                     style={[
@@ -184,7 +184,7 @@ const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
                 <Text
                   style={[localStyles.label, { color: colors.textSecondary }]}
                 >
-                  Measurement Type
+                  Ölçüm Türü
                 </Text>
                 <View
                   style={[
@@ -247,7 +247,7 @@ const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
                   <Text
                     style={[localStyles.label, { color: colors.textSecondary }]}
                   >
-                    Note
+                    Not
                   </Text>
                   <View
                     style={[
@@ -268,7 +268,7 @@ const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
                           textAlignVertical: "top",
                         },
                       ]}
-                      placeholder="Add a note..."
+                      placeholder="Not ekle..."
                       placeholderTextColor={colors.textSecondary}
                       multiline
                       value={note}
@@ -285,9 +285,7 @@ const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
                   ]}
                   onPress={handleSave}
                 >
-                  <Text style={localStyles.saveButtonText}>
-                    Save Measurement
-                  </Text>
+                  <Text style={localStyles.saveButtonText}>Ölçümü Kaydet</Text>
                 </Pressable>
               </View>
             </KeyboardAvoidingView>
