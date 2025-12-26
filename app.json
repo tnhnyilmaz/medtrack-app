@@ -46,6 +46,7 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
+    "jsEngine": "hermes",
     "extra": {
       "router": {},
       "eas": {

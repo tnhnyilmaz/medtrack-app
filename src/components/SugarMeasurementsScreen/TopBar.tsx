@@ -15,7 +15,7 @@ const TopBar = () => {
         <Feather name="chevron-left" size={42} color={colors.text} />
       </Pressable>
       <Text style={[styles.headText, { color: colors.text }]}>
-        Sugar Measurements
+        Şeker Ölçümü
       </Text>
     </View>
   );

@@ -59,7 +59,12 @@ export const getMedicines = async (): Promise<Medicine[]> => {
 export const deleteMedicine = async (id: number) => {
     const db = await initDB();
     // Cancel any scheduled notifications for this medicine
-    await cancelMedicineNotifications(id);
+    try {
+        await cancelMedicineNotifications(id);
+    } catch (error) {
+        console.log("Error cancelling notifications:", error);
+        // Continue with deletion even if notification cancellation fails
+    }
     // Delete related records first (FK constraints may not work in SQLite by default)
     await db.runAsync('DELETE FROM intake_logs WHERE medicine_id = ?', [id]);
     await db.runAsync('DELETE FROM schedules WHERE medicine_id = ?', [id]);

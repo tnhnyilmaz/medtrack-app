@@ -3,19 +3,10 @@ import MedDose from "@/src/components/AddMedicationScreen/MedDose";
 import MedForm from "@/src/components/AddMedicationScreen/MedForm";
 import MedName from "@/src/components/AddMedicationScreen/MedName";
 import MedTime from "@/src/components/AddMedicationScreen/MedTime";
+import { ScheduleType, useMedicationForm, WEEK_DAYS } from "@/src/hooks/useMedicationForm";
+import { useLocalSearchParams } from "expo-router";
+import React from "react";
 import {
-  addMedicine,
-  addSchedule,
-  deleteSchedules,
-  getMedicineById,
-  getSchedules,
-  updateMedicine,
-} from "@/src/database/medicineRepository";
-import { scheduleMedicineReminders } from "@/src/services/notificationService";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
-import {
-  Alert,
   Modal,
   ScrollView,
   Text,
@@ -26,230 +17,29 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../src/contexts/ThemeContext";
 import styles from "../src/styles/AddMedicationStyles";
 
-type ScheduleType = "daily" | "weekly" | "monthly";
-
-const WEEK_DAYS = [
-  { key: "monday", label: "Pzt" },
-  { key: "tuesday", label: "Sal" },
-  { key: "wednesday", label: "Çar" },
-  { key: "thursday", label: "Per" },
-  { key: "friday", label: "Cum" },
-  { key: "saturday", label: "Cmt" },
-  { key: "sunday", label: "Paz" },
-];
-
 const AddMedicationScreen = () => {
-  const router = useRouter();
   const { id } = useLocalSearchParams();
   const { colors } = useTheme();
-  const [medName, setMedName] = useState("");
-  const [durationValue, setDurationValue] = useState("");
-  const [durationType, setDurationType] = useState("");
-  const [frequency, setFrequency] = useState("");
-  const [timeInputs, setTimeInputs] = useState<string[]>([]);
-  const [showTimePicker, setShowTimePicker] = useState(false);
-  const [selectedTimeIndex, setSelectedTimeIndex] = useState(0);
-  const [tempHour, setTempHour] = useState("08");
-  const [tempMinute, setTempMinute] = useState("00");
-  const [withFood, setWithFood] = useState("");
-  const [medicineForm, setMedicineForm] = useState("");
-  const [dosage, setDosage] = useState("");
 
-  // New schedule fields
-  const [scheduleType, setScheduleType] = useState<ScheduleType>("daily");
-  const [selectedWeekDays, setSelectedWeekDays] = useState<string[]>([]);
-  const [selectedMonthDays, setSelectedMonthDays] = useState<string[]>([]);
-
-  const updateTimeInput = (index: number, value: string) => {
-    const newTimes = [...timeInputs];
-    newTimes[index] = value;
-    setTimeInputs(newTimes);
-  };
-
-  useEffect(() => {
-    if (id) {
-      loadMedicineData(Number(id));
-    }
-  }, [id]);
-
-  const loadMedicineData = async (medId: number) => {
-    try {
-      const medicine = await getMedicineById(medId);
-      if (medicine) {
-        setMedName(medicine.name);
-        setFrequency(medicine.frequency.toString());
-        setWithFood(medicine.instruction || "");
-        setMedicineForm(medicine.form || "");
-        setDosage(medicine.dosage || "");
-        setScheduleType(medicine.schedule_type || "daily");
-
-        if (medicine.schedule_days) {
-          const days = JSON.parse(medicine.schedule_days);
-          if (medicine.schedule_type === "weekly") {
-            setSelectedWeekDays(days);
-          } else if (medicine.schedule_type === "monthly") {
-            setSelectedMonthDays(days);
-          }
-        }
-
-        if (medicine.form) {
-          setDurationType(medicine.form);
-          setDurationValue("1");
-        }
-
-        const schedules = await getSchedules(medId);
-        setTimeInputs(schedules);
-      }
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Hata", "İlaç bilgileri yüklenemedi.");
-    }
-  };
-
-  const openTimePicker = (index: number) => {
-    setSelectedTimeIndex(index);
-    const currentTime = timeInputs[index];
-    if (currentTime) {
-      const [hour, minute] = currentTime.split(":");
-      setTempHour(hour);
-      setTempMinute(minute);
-    }
-    setShowTimePicker(true);
-  };
-
-  const confirmTime = () => {
-    const timeString = `${tempHour}:${tempMinute}`;
-    updateTimeInput(selectedTimeIndex, timeString);
-    setShowTimePicker(false);
-  };
-
-  const toggleWeekDay = (day: string) => {
-    setSelectedWeekDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
-  };
-
-  const toggleMonthDay = (day: string) => {
-    setSelectedMonthDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
-  };
-
-  const getScheduleDays = (): string | null => {
-    if (scheduleType === "weekly" && selectedWeekDays.length > 0) {
-      return JSON.stringify(selectedWeekDays);
-    }
-    if (scheduleType === "monthly" && selectedMonthDays.length > 0) {
-      return JSON.stringify(selectedMonthDays);
-    }
-    return null;
-  };
-
-  const validateAndSave = async () => {
-    if (!medName.trim()) {
-      Alert.alert("Uyarı", "Lütfen ilaç adını girin.");
-      return;
-    }
-    if (!durationValue.trim() || !durationType) {
-      Alert.alert("Uyarı", "Lütfen kullanım süresini ve süre tipini seçin.");
-      return;
-    }
-    if (!frequency.trim()) {
-      Alert.alert("Uyarı", "Lütfen günlük kullanım sıklığını girin.");
-      return;
-    }
-    if (parseInt(frequency) >= 1) {
-      const emptyTimes = timeInputs.filter((time) => !time.trim());
-      if (emptyTimes.length > 0) {
-        Alert.alert("Uyarı", "Lütfen tüm saat bilgilerini girin.");
-        return;
-      }
-    }
-    if (!withFood) {
-      Alert.alert("Uyarı", "Lütfen aç/tok durumunu seçin.");
-      return;
-    }
-    if (scheduleType === "weekly" && selectedWeekDays.length === 0) {
-      Alert.alert("Uyarı", "Lütfen en az bir gün seçin.");
-      return;
-    }
-    if (scheduleType === "monthly" && selectedMonthDays.length === 0) {
-      Alert.alert("Uyarı", "Lütfen ayın hangi günlerinde alınacağını seçin.");
-      return;
-    }
-
-    try {
-      let targetId = Number(id);
-      if (id) {
-        await updateMedicine(targetId, {
-          id: targetId,
-          name: medName,
-          dosage: dosage,
-          form: medicineForm,
-          frequency: parseInt(frequency),
-          instruction: withFood,
-          start_date: new Date().toISOString(),
-          schedule_type: scheduleType,
-          schedule_days: getScheduleDays() || undefined,
-        });
-        await deleteSchedules(targetId);
-      } else {
-        targetId = await addMedicine({
-          name: medName,
-          dosage: dosage,
-          form: medicineForm,
-          frequency: parseInt(frequency),
-          instruction: withFood,
-          start_date: new Date().toISOString(),
-          schedule_type: scheduleType,
-          schedule_days: getScheduleDays() || undefined,
-        });
-      }
-
-      // Save Schedules
-      const savedTimes: string[] = [];
-      if (parseInt(frequency) === 1) {
-        if (timeInputs[0]) {
-          await addSchedule(targetId, timeInputs[0]);
-          savedTimes.push(timeInputs[0]);
-        }
-      } else {
-        for (const time of timeInputs) {
-          if (time) {
-            await addSchedule(targetId, time);
-            savedTimes.push(time);
-          }
-        }
-      }
-
-      // Schedule notifications for medication reminders
-      if (savedTimes.length > 0) {
-        const scheduleDaysArray =
-          scheduleType === "weekly"
-            ? selectedWeekDays
-            : scheduleType === "monthly"
-            ? selectedMonthDays
-            : undefined;
-
-        await scheduleMedicineReminders(
-          targetId,
-          medName,
-          savedTimes,
-          scheduleType,
-          scheduleDaysArray
-        );
-      }
-
-      Alert.alert(
-        "Başarılı",
-        id ? "İlaç güncellendi!" : "İlaç başarıyla kaydedildi!",
-        [{ text: "Tamam", onPress: () => router.back() }]
-      );
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Hata", "İlaç kaydedilirken bir sorun oluştu.");
-    }
-  };
+  const {
+    medName, setMedName,
+    durationValue, setDurationValue,
+    durationType, setDurationType,
+    frequency, setFrequency,
+    timeInputs, setTimeInputs,
+    showTimePicker, setShowTimePicker,
+    tempHour, setTempHour,
+    tempMinute, setTempMinute,
+    withFood, setWithFood,
+    medicineForm, setMedicineForm,
+    dosage, setDosage,
+    scheduleType, setScheduleType,
+    selectedWeekDays, toggleWeekDay,
+    selectedMonthDays, toggleMonthDay,
+    openTimePicker,
+    confirmTime,
+    validateAndSave,
+  } = useMedicationForm(id as string);
 
   return (
     <SafeAreaView style={[{ backgroundColor: colors.background }, { flex: 1 }]}>
@@ -259,7 +49,7 @@ const AddMedicationScreen = () => {
         </Text>
 
         <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={{ gap: 20 }}>
+          <View style={styles.scrollContainer}>
             <MedName medName={medName} setMedName={setMedName} />
             <MedForm
               medicineForm={medicineForm}
@@ -276,27 +66,28 @@ const AddMedicationScreen = () => {
 
             {/* Schedule Type Selection */}
             <View>
-              <Text
-                style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}
-              >
+              <Text style={[styles.label, { color: colors.text }]}>
                 Ne Sıklıkla?
               </Text>
-              <View style={{ flexDirection: "row", gap: 10 }}>
+              <View style={styles.durationRow}>
                 {(["daily", "weekly", "monthly"] as ScheduleType[]).map(
                   (type) => (
                     <TouchableOpacity
                       key={type}
                       onPress={() => setScheduleType(type)}
-                      style={{
-                        flex: 1,
-                        backgroundColor:
-                          scheduleType === type
-                            ? colors.secondary
-                            : colors.surface,
-                        borderRadius: 10,
-                        padding: 12,
-                        alignItems: "center",
-                      }}
+                      style={[
+                        styles.durationButton,
+                        {
+                          backgroundColor:
+                            scheduleType === type
+                              ? colors.secondary
+                              : colors.surface,
+                          borderColor:
+                            scheduleType === type
+                              ? colors.secondary
+                              : "#E5E5E5"
+                        }
+                      ]}
                     >
                       <Text
                         style={{
@@ -308,8 +99,8 @@ const AddMedicationScreen = () => {
                         {type === "daily"
                           ? "Her Gün"
                           : type === "weekly"
-                          ? "Haftalık"
-                          : "Aylık"}
+                            ? "Haftalık"
+                            : "Aylık"}
                       </Text>
                     </TouchableOpacity>
                   )
@@ -320,14 +111,10 @@ const AddMedicationScreen = () => {
             {/* Weekly Day Selection */}
             {scheduleType === "weekly" && (
               <View>
-                <Text
-                  style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}
-                >
+                <Text style={[styles.label, { color: colors.text }]}>
                   Hangi Günler?
                 </Text>
-                <View
-                  style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
-                >
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                   {WEEK_DAYS.map((day) => (
                     <TouchableOpacity
                       key={day.key}
@@ -365,14 +152,10 @@ const AddMedicationScreen = () => {
             {/* Monthly Day Selection */}
             {scheduleType === "monthly" && (
               <View>
-                <Text
-                  style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}
-                >
+                <Text style={[styles.label, { color: colors.text }]}>
                   Ayın Hangi Günleri?
                 </Text>
-                <View
-                  style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}
-                >
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
                   {Array.from({ length: 31 }, (_, i) => (i + 1).toString()).map(
                     (day) => (
                       <TouchableOpacity
@@ -426,20 +209,12 @@ const AddMedicationScreen = () => {
 
             {parseInt(frequency) === 1 && (
               <View>
-                <Text
-                  style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}
-                >
+                <Text style={[styles.label, { color: colors.text }]}>
                   Saat
                 </Text>
                 <TouchableOpacity
                   onPress={() => openTimePicker(0)}
-                  style={{
-                    backgroundColor: colors.surface,
-                    borderRadius: 10,
-                    padding: 15,
-                    borderWidth: 1,
-                    borderColor: "#E5E5E5",
-                  }}
+                  style={[styles.textInput, { backgroundColor: colors.surface }]}
                 >
                   <Text
                     style={{
@@ -454,28 +229,25 @@ const AddMedicationScreen = () => {
             )}
 
             <View>
-              <Text
-                style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}
-              >
+              <Text style={[styles.label, { color: colors.text }]}>
                 Aç mı Tok mu?
               </Text>
-              <View style={{ flexDirection: "row", gap: 10 }}>
+              <View style={styles.foodRow}>
                 <TouchableOpacity
                   onPress={() => setWithFood("aç")}
-                  style={{
-                    flex: 1,
-                    backgroundColor:
-                      withFood === "aç" ? colors.secondary : colors.surface,
-                    borderRadius: 10,
-                    padding: 15,
-                    alignItems: "center",
-                  }}
+                  style={[
+                    styles.foodButton,
+                    {
+                      backgroundColor:
+                        withFood === "aç" ? colors.secondary : colors.surface,
+                    }
+                  ]}
                 >
                   <Text
-                    style={{
-                      color: withFood === "aç" ? "white" : colors.text,
-                      fontSize: 16,
-                    }}
+                    style={[
+                      styles.foodButtonText,
+                      { color: withFood === "aç" ? "white" : colors.text }
+                    ]}
                   >
                     Aç
                   </Text>
@@ -483,20 +255,19 @@ const AddMedicationScreen = () => {
 
                 <TouchableOpacity
                   onPress={() => setWithFood("tok")}
-                  style={{
-                    flex: 1,
-                    backgroundColor:
-                      withFood === "tok" ? colors.secondary : colors.surface,
-                    borderRadius: 10,
-                    padding: 15,
-                    alignItems: "center",
-                  }}
+                  style={[
+                    styles.foodButton,
+                    {
+                      backgroundColor:
+                        withFood === "tok" ? colors.secondary : colors.surface,
+                    }
+                  ]}
                 >
                   <Text
-                    style={{
-                      color: withFood === "tok" ? "white" : colors.text,
-                      fontSize: 16,
-                    }}
+                    style={[
+                      styles.foodButtonText,
+                      { color: withFood === "tok" ? "white" : colors.text }
+                    ]}
                   >
                     Tok
                   </Text>
@@ -507,48 +278,19 @@ const AddMedicationScreen = () => {
         </ScrollView>
 
         <Modal visible={showTimePicker} transparent animationType="slide">
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: "rgba(0,0,0,0.5)",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <View
-              style={{
-                backgroundColor: colors.surface,
-                borderRadius: 20,
-                padding: 20,
-                width: "80%",
-              }}
-            >
-              <Text
-                style={{
-                  color: colors.text,
-                  fontSize: 18,
-                  fontWeight: "bold",
-                  textAlign: "center",
-                  marginBottom: 20,
-                }}
-              >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalContainer, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
                 Saat Seçin
               </Text>
 
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  marginBottom: 20,
-                }}
-              >
-                <View style={{ alignItems: "center" }}>
-                  <Text style={{ color: colors.text, marginBottom: 10 }}>
+              <View style={styles.timePickerRow}>
+                <View style={styles.timePickerColumn}>
+                  <Text style={[styles.timePickerLabel, { color: colors.text }]}>
                     Saat
                   </Text>
                   <ScrollView
-                    style={{ height: 120 }}
+                    style={styles.timePickerScroll}
                     showsVerticalScrollIndicator={false}
                   >
                     {Array.from({ length: 24 }, (_, i) => {
@@ -557,21 +299,21 @@ const AddMedicationScreen = () => {
                         <TouchableOpacity
                           key={i}
                           onPress={() => setTempHour(hour)}
-                          style={{
-                            padding: 10,
-                            backgroundColor:
-                              tempHour === hour
-                                ? colors.secondary
-                                : "transparent",
-                            borderRadius: 5,
-                            marginVertical: 2,
-                          }}
+                          style={[
+                            styles.timePickerItem,
+                            {
+                              backgroundColor:
+                                tempHour === hour
+                                  ? colors.secondary
+                                  : "transparent",
+                            }
+                          ]}
                         >
                           <Text
-                            style={{
-                              color: tempHour === hour ? "white" : colors.text,
-                              textAlign: "center",
-                            }}
+                            style={[
+                              styles.timePickerItemText,
+                              { color: tempHour === hour ? "white" : colors.text }
+                            ]}
                           >
                             {hour}
                           </Text>
@@ -581,22 +323,16 @@ const AddMedicationScreen = () => {
                   </ScrollView>
                 </View>
 
-                <Text
-                  style={{
-                    color: colors.text,
-                    fontSize: 24,
-                    marginHorizontal: 20,
-                  }}
-                >
+                <Text style={[styles.timeSeparator, { color: colors.text }]}>
                   :
                 </Text>
 
-                <View style={{ alignItems: "center" }}>
-                  <Text style={{ color: colors.text, marginBottom: 10 }}>
+                <View style={styles.timePickerColumn}>
+                  <Text style={[styles.timePickerLabel, { color: colors.text }]}>
                     Dakika
                   </Text>
                   <ScrollView
-                    style={{ height: 120 }}
+                    style={styles.timePickerScroll}
                     showsVerticalScrollIndicator={false}
                   >
                     {Array.from({ length: 60 }, (_, i) => {
@@ -605,22 +341,21 @@ const AddMedicationScreen = () => {
                         <TouchableOpacity
                           key={i}
                           onPress={() => setTempMinute(minute)}
-                          style={{
-                            padding: 10,
-                            backgroundColor:
-                              tempMinute === minute
-                                ? colors.secondary
-                                : "transparent",
-                            borderRadius: 5,
-                            marginVertical: 2,
-                          }}
+                          style={[
+                            styles.timePickerItem,
+                            {
+                              backgroundColor:
+                                tempMinute === minute
+                                  ? colors.secondary
+                                  : "transparent",
+                            }
+                          ]}
                         >
                           <Text
-                            style={{
-                              color:
-                                tempMinute === minute ? "white" : colors.text,
-                              textAlign: "center",
-                            }}
+                            style={[
+                              styles.timePickerItemText,
+                              { color: tempMinute === minute ? "white" : colors.text }
+                            ]}
                           >
                             {minute}
                           </Text>
@@ -631,31 +366,19 @@ const AddMedicationScreen = () => {
                 </View>
               </View>
 
-              <View style={{ flexDirection: "row", gap: 10 }}>
+              <View style={styles.modalButtonRow}>
                 <TouchableOpacity
                   onPress={() => setShowTimePicker(false)}
-                  style={{
-                    flex: 1,
-                    backgroundColor: colors.textSecondary,
-                    borderRadius: 10,
-                    padding: 15,
-                    alignItems: "center",
-                  }}
+                  style={[styles.modalButton, { backgroundColor: colors.textSecondary }]}
                 >
-                  <Text style={{ color: "white", fontSize: 16 }}>İptal</Text>
+                  <Text style={styles.modalButtonText}>İptal</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   onPress={confirmTime}
-                  style={{
-                    flex: 1,
-                    backgroundColor: colors.secondary,
-                    borderRadius: 10,
-                    padding: 15,
-                    alignItems: "center",
-                  }}
+                  style={[styles.modalButton, { backgroundColor: colors.secondary }]}
                 >
-                  <Text style={{ color: "white", fontSize: 16 }}>Tamam</Text>
+                  <Text style={styles.modalButtonText}>Tamam</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -664,15 +387,9 @@ const AddMedicationScreen = () => {
 
         <TouchableOpacity
           onPress={validateAndSave}
-          style={{
-            backgroundColor: colors.secondary,
-            borderRadius: 10,
-            padding: 18,
-            alignItems: "center",
-            marginVertical: 10,
-          }}
+          style={[styles.saveButton, { backgroundColor: colors.secondary }]}
         >
-          <Text style={{ color: "white", fontSize: 18, fontWeight: "bold" }}>
+          <Text style={styles.saveButtonText}>
             {id ? "İlacı Güncelle" : "İlacı Kaydet"}
           </Text>
         </TouchableOpacity>

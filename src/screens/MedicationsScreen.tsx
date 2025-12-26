@@ -45,7 +45,7 @@ const MedicationsScreen = () => {
             loadMedicines();
           } catch (error) {
             console.error(error);
-            Alert.alert("Hata", "İlaç silinirken bir hata oluştu.");
+            Alert.alert("Hata Detayı (GÜNCEL KOD)", `Mesaj: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
           }
         },
       },
