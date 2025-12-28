@@ -8,6 +8,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import React, { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Modal,
@@ -20,6 +21,7 @@ import MedTile from "./MedTile";
 
 const MedList = () => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [medications, setMedications] = useState<TodayMedication[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -133,8 +135,7 @@ const MedList = () => {
           <View style={[styles.warningBox, { backgroundColor: "#FEE2E2" }]}>
             <Ionicons name="warning" size={20} color="#EF4444" />
             <Text style={[styles.warningText, { color: "#EF4444" }]}>
-              Bu ilacın saati geçti! Şimdi alsanız "Geç Alındı" olarak
-              kaydedilecek.
+              {t('home.lateWarning')}
             </Text>
           </View>
         )}
@@ -143,7 +144,7 @@ const MedList = () => {
           <View style={[styles.warningBox, { backgroundColor: "#FFF3E0" }]}>
             <Ionicons name="time" size={20} color="#FF9800" />
             <Text style={[styles.warningText, { color: "#FF9800" }]}>
-              Bu ilacı {selectedMed.taken_time} saatinde aldınız (geç).
+              {t('home.takenLateAt').replace('{time}', selectedMed.taken_time || '')}
             </Text>
           </View>
         )}
@@ -152,7 +153,7 @@ const MedList = () => {
           <View style={[styles.warningBox, { backgroundColor: "#DCFCE7" }]}>
             <Ionicons name="checkmark-circle" size={20} color="#22C55E" />
             <Text style={[styles.warningText, { color: "#22C55E" }]}>
-              Bu ilacı {selectedMed.taken_time} saatinde aldınız.
+              {t('home.takenAt').replace('{time}', selectedMed.taken_time || '')}
             </Text>
           </View>
         )}
@@ -169,7 +170,7 @@ const MedList = () => {
             >
               <Ionicons name="checkmark" size={24} color="white" />
               <Text style={styles.actionButtonText}>
-                {isMissed ? "Geç Aldım" : "İlacı Aldım"}
+                {isMissed ? t('home.takeLate') : t('home.takeMed')}
               </Text>
             </TouchableOpacity>
           )}
@@ -180,7 +181,7 @@ const MedList = () => {
               onPress={handleUndoIntake}
             >
               <Ionicons name="arrow-undo" size={24} color="white" />
-              <Text style={styles.actionButtonText}>Geri Al</Text>
+              <Text style={styles.actionButtonText}>{t('home.undo')}</Text>
             </TouchableOpacity>
           )}
 
@@ -191,7 +192,7 @@ const MedList = () => {
             <Text
               style={[styles.cancelButtonText, { color: colors.textSecondary }]}
             >
-              Kapat
+              {t('home.close')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -212,10 +213,10 @@ const MedList = () => {
       return (
         <View style={styles.emptyContainer}>
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            Bugün için planlanmış ilaç yok
+            {t('home.noMedicationsScheduled')}
           </Text>
           <Text style={[styles.emptySubText, { color: colors.textSecondary }]}>
-            Yeni ilaç eklemek için + butonuna tıklayın
+            {t('home.tapPlusToAdd')}
           </Text>
         </View>
       );
@@ -241,11 +242,11 @@ const MedList = () => {
     <View>
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>
-          Günün İlaçları
+          {t('home.todaysMedications')}
         </Text>
         <TouchableOpacity onPress={() => router.push("/medicationsScreen")}>
           <Text style={[styles.seeAllText, { color: colors.textSecondary }]}>
-            Tüm İlaçlar
+            {t('home.allMedications')}
           </Text>
         </TouchableOpacity>
       </View>

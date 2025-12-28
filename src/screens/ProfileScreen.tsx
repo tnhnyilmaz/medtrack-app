@@ -2,6 +2,7 @@ import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Image,
   ScrollView,
@@ -12,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useLanguage } from "../contexts/LanguageContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { useUser } from "../contexts/UserContext";
 
@@ -21,11 +23,13 @@ const DEFAULT_AVATAR =
 const ProfileScreen = () => {
   const { colors, toggleTheme, isDark } = useTheme();
   const { user, updateUserPhoto } = useUser();
+  const { language, changeLanguage } = useLanguage();
+  const { t } = useTranslation();
   const router = useRouter();
 
   const formatBirthday = (date: Date | null) => {
-    if (!date) return "Belirtilmedi";
-    return date.toLocaleDateString("tr-TR", {
+    if (!date) return t('profile.unspecified');
+    return date.toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', {
       day: "numeric",
       month: "long",
       year: "numeric",
@@ -33,11 +37,11 @@ const ProfileScreen = () => {
   };
 
   const getGenderDisplay = (gender: "male" | "female" | null) => {
-    if (!gender) return "Belirtilmedi";
-    return gender === "male" ? "Erkek" : "Kadın";
+    if (!gender) return t('profile.unspecified');
+    return gender === "male" ? t('profile.male') : t('profile.female');
   };
 
-  const displayName = user.name || "Kullanıcı";
+  const displayName = user.name || t('profile.defaultUser');
   const displayEmail = user.email || "email@example.com";
   const photoUri = user.photo || DEFAULT_AVATAR;
 
@@ -46,7 +50,7 @@ const ProfileScreen = () => {
       await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permissionResult.granted) {
-      alert("Galeriye erişim izni gerekli!");
+      alert(t('profile.galleryPermission'));
       return;
     }
 
@@ -65,17 +69,17 @@ const ProfileScreen = () => {
   const menuItems = [
     {
       icon: <Ionicons name="settings-outline" size={24} color="#4CAF50" />,
-      title: "Hesap Ayarları",
+      title: t('profile.accountSettings'),
       onPress: () => console.log("Account Settings"),
     },
     {
       icon: <Ionicons name="notifications-outline" size={24} color="#50E3C2" />,
-      title: "Bildirimler",
+      title: t('profile.notifications'),
       onPress: () => console.log("Notifications"),
     },
     {
       icon: <Ionicons name="help-circle-outline" size={24} color="#4CAF50" />,
-      title: "Yardım & Destek",
+      title: t('profile.helpSupport'),
       onPress: () => console.log("Help & Support"),
     },
   ];
@@ -83,7 +87,7 @@ const ProfileScreen = () => {
   const infoItems = [
     {
       icon: <MaterialIcons name="cake" size={24} color="#4CAF50" />,
-      label: "Doğum Tarihi",
+      label: t('profile.birthday'),
       value: formatBirthday(user.birthday),
     },
     {
@@ -94,12 +98,12 @@ const ProfileScreen = () => {
           color={user.gender === "female" ? "#E91E63" : "#4CAF50"}
         />
       ),
-      label: "Cinsiyet",
+      label: t('profile.gender'),
       value: getGenderDisplay(user.gender),
     },
     {
       icon: <Feather name="mail" size={24} color="#4CAF50" />,
-      label: "E-posta",
+      label: t('profile.email'),
       value: displayEmail,
     },
   ];
@@ -115,7 +119,7 @@ const ProfileScreen = () => {
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Profil</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('profile.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -219,7 +223,7 @@ const ProfileScreen = () => {
               />
             </View>
             <Text style={[styles.menuItemText, { color: colors.text }]}>
-              {isDark ? "Karanlık Tema" : "Aydınlık Tema"}
+              {isDark ? t('profile.darkTheme') : t('profile.lightTheme')}
             </Text>
           </View>
           <Switch
@@ -230,8 +234,57 @@ const ProfileScreen = () => {
           />
         </View>
 
+        {/* Language Selection */}
+        <View
+          style={[styles.themeSection, { backgroundColor: colors.surface }]}
+        >
+          <View style={styles.menuItemLeft}>
+            <View
+              style={[
+                styles.menuIconBox,
+                { backgroundColor: "#E3F2FD" },
+              ]}
+            >
+              <Ionicons
+                name="language"
+                size={24}
+                color="#2196F3"
+              />
+            </View>
+            <Text style={[styles.menuItemText, { color: colors.text }]}>
+              {t('profile.selectLanguage')}
+            </Text>
+          </View>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <TouchableOpacity
+              onPress={() => changeLanguage('tr')}
+              style={{
+                padding: 8,
+                borderRadius: 8,
+                backgroundColor: language === 'tr' ? '#2196F3' : 'transparent',
+                borderWidth: 1,
+                borderColor: '#2196F3'
+              }}
+            >
+              <Text style={{ color: language === 'tr' ? '#FFF' : '#2196F3', fontWeight: 'bold' }}>TR</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => changeLanguage('en')}
+              style={{
+                padding: 8,
+                borderRadius: 8,
+                backgroundColor: language === 'en' ? '#2196F3' : 'transparent',
+                borderWidth: 1,
+                borderColor: '#2196F3'
+              }}
+            >
+              <Text style={{ color: language === 'en' ? '#FFF' : '#2196F3', fontWeight: 'bold' }}>EN</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         <TouchableOpacity style={styles.logoutButton}>
-          <Text style={styles.logoutText}>Çıkış Yap</Text>
+          <Text style={styles.logoutText}>{t('profile.logout')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

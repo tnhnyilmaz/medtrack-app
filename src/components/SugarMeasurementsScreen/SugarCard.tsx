@@ -2,6 +2,7 @@ import { useTheme } from "@/src/contexts/ThemeContext";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 import styles from "../../styles/SugarMeasurementsStyle";
 
@@ -16,7 +17,15 @@ interface SugarDataProps {
 
 const SugarCard = ({ data }: { data: SugarDataProps }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
+
+  // Translate type display
+  const getTypeDisplay = (type: string) => {
+    if (type === "Açlık" || type === t('sugar.fasting')) return t('sugar.fasting');
+    if (type === "Tokluk" || type === t('sugar.postprandial')) return t('sugar.postprandial');
+    return type;
+  };
 
   const getStatusStyle = (status: string) => {
     const errorColor = colors.error || "#FF3B30";
@@ -24,29 +33,34 @@ const SugarCard = ({ data }: { data: SugarDataProps }) => {
     const successColor = colors.success || "#34C759";
     const defaultColor = colors.textSecondary || "#8E8E93";
 
-    switch (status) {
-      case "Yüksek":
-      case "Çok Yüksek":
-        return {
-          color: errorColor,
-          backgroundColor: `${errorColor}20`,
-        };
-      case "Düşük":
-        return {
-          color: warningColor,
-          backgroundColor: `${warningColor}20`,
-        };
-      case "Normal":
-        return {
-          color: successColor,
-          backgroundColor: `${successColor}20`,
-        };
-      default:
-        return {
-          color: defaultColor,
-          backgroundColor: `${defaultColor}20`,
-        };
+    // Check both Turkish and English status texts
+    const isHigh = status === "Yüksek" || status === "Çok Yüksek" ||
+      status === t('sugar.statusHigh') || status === t('sugar.statusVeryHigh');
+    const isLow = status === "Düşük" || status === t('sugar.statusLow');
+    const isNormal = status === "Normal" || status === t('sugar.statusNormal');
+
+    if (isHigh) {
+      return {
+        color: errorColor,
+        backgroundColor: `${errorColor}20`,
+      };
     }
+    if (isLow) {
+      return {
+        color: warningColor,
+        backgroundColor: `${warningColor}20`,
+      };
+    }
+    if (isNormal) {
+      return {
+        color: successColor,
+        backgroundColor: `${successColor}20`,
+      };
+    }
+    return {
+      color: defaultColor,
+      backgroundColor: `${defaultColor}20`,
+    };
   };
 
   const statusStyle = getStatusStyle(data.status);
@@ -82,10 +96,12 @@ const SugarCard = ({ data }: { data: SugarDataProps }) => {
             />
           </View>
           <View>
-            <Text style={styles.sugarText}>{data.level} mg/dL</Text>
+            <Text style={[styles.sugarText, { color: colors.text }]}>
+              {data.level} mg/dL
+            </Text>
             <View style={[styles.row, { gap: 10 }]}>
               <Text style={{ color: colors.textSecondary || "gray" }}>
-                {data.time} - {data.type}
+                {data.time} - {getTypeDisplay(data.type)}
               </Text>
               <View
                 style={{
@@ -133,7 +149,7 @@ const SugarCard = ({ data }: { data: SugarDataProps }) => {
           <Text
             style={{ fontWeight: "bold", color: colors.text, marginBottom: 2 }}
           >
-            Not:
+            {t('sugar.note')}:
           </Text>
           <Text
             style={{

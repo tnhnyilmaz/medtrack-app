@@ -65,7 +65,6 @@ export default StyleSheet.create({
     sugarText: {
         fontSize: 22,
         fontWeight: 'bold',
-
     },
     textStatus: {
         backgroundColor: '#9e1919ff',

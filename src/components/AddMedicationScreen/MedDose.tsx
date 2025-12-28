@@ -1,5 +1,6 @@
 import { useTheme } from "@/src/contexts/ThemeContext";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Text, TextInput, View } from "react-native";
 
 const MedDose = ({ frequency, setFrequency, setTimeInputs }: {
@@ -8,6 +9,7 @@ const MedDose = ({ frequency, setFrequency, setTimeInputs }: {
   setTimeInputs: (value: string[]) => void;
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   const handleFrequencyChange = (value: string) => {
     setFrequency(value);
@@ -18,16 +20,16 @@ const MedDose = ({ frequency, setFrequency, setTimeInputs }: {
       setTimeInputs([]);
     }
   };
-  
+
   return (
     <View>
       <Text style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}>
-        Günde Kaç Kere?
+        {t('addMedicationScreen.frequency')}
       </Text>
       <TextInput
         value={frequency}
         onChangeText={handleFrequencyChange}
-        placeholder="Örn: 2"
+        placeholder={t('addMedicationScreen.frequencyPlaceholder')}
         placeholderTextColor={colors.textSecondary}
         keyboardType="numeric"
         style={{

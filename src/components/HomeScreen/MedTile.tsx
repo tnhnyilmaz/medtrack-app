@@ -2,6 +2,7 @@ import { useTheme } from "@/src/contexts/ThemeContext";
 import { TodayMedication } from "@/src/database/medicineRepository";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface MedTileProps {
@@ -11,6 +12,7 @@ interface MedTileProps {
 
 const MedTile = ({ med, onPress }: MedTileProps) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -67,13 +69,13 @@ const MedTile = ({ med, onPress }: MedTileProps) => {
   const getStatusText = (status: string) => {
     switch (status) {
       case "taken":
-        return "Alındı";
+        return t('home.statusTaken');
       case "taken_late":
-        return "Geç Alındı";
+        return t('home.statusTakenLate');
       case "missed":
-        return "Kaçırıldı";
+        return t('home.statusMissed');
       case "pending":
-        return "Bekliyor";
+        return t('home.statusPending');
       default:
         return "";
     }
@@ -126,9 +128,18 @@ const MedTile = ({ med, onPress }: MedTileProps) => {
 
   const iconConfig = getMedicineIconConfig(med.status);
   const displayTime = med.schedule_time;
+
+  // Translate instruction
+  const getInstructionDisplay = (instruction: string | undefined) => {
+    if (!instruction) return "";
+    if (instruction === "aç") return t('medications.onEmptyStomach');
+    if (instruction === "tok") return t('medications.onFullStomach');
+    return instruction;
+  };
+
   const displayInfo = med.dosage
-    ? `${med.dosage}${med.instruction ? ` • ${med.instruction}` : ""}`
-    : med.instruction || "";
+    ? `${med.dosage}${med.instruction ? ` • ${getInstructionDisplay(med.instruction)}` : ""}`
+    : getInstructionDisplay(med.instruction);
 
   return (
     <TouchableOpacity

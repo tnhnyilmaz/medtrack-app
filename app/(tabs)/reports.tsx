@@ -1,24 +1,26 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/contexts/ThemeContext";
 
 export default function ReportsScreen() {
   const { colors } = useTheme();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const reportCards = [
     {
-      title: "Tansiyon Ölçümleri",
-      subtitle: "Kan basıncı geçmişinizi görüntüleyin",
+      title: t('reports.bpTitle'),
+      subtitle: t('reports.bpSubtitle'),
       icon: "heart" as const,
       color: "#FF6B6B",
       route: "/bloodPressureScreen",
     },
     {
-      title: "Şeker Ölçümleri",
-      subtitle: "Kan şekeri geçmişinizi görüntüleyin",
+      title: t('reports.sugarTitle'),
+      subtitle: t('reports.sugarSubtitle'),
       icon: "water" as const,
       color: "#4ECDC4",
       route: "/sugarMeasurementsScreen",
@@ -28,9 +30,9 @@ export default function ReportsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>Raporlar</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t('reports.title')}</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          Sağlık verilerinizi inceleyin
+          {t('reports.subtitle')}
         </Text>
       </View>
 

@@ -8,7 +8,7 @@ const getDB = async (): Promise<SQLite.SQLiteDatabase> => {
     return initDB();
 };
 
-export type PeriodType = 'Daily' | 'Weekly' | 'Monthly';
+export type PeriodType = 'Günlük' | 'Haftalık' | 'Aylık';
 
 // Helper to get date range based on period
 const getDateRange = (period: PeriodType): { startDate: string; endDate: string } => {
@@ -20,14 +20,14 @@ const getDateRange = (period: PeriodType): { startDate: string; endDate: string 
     startDate.setHours(0, 0, 0, 0);
 
     switch (period) {
-        case 'Daily':
+        case 'Günlük':
             // Today only - startDate is already set to beginning of today
             break;
-        case 'Weekly':
+        case 'Haftalık':
             // Last 7 days
             startDate.setDate(startDate.getDate() - 6);
             break;
-        case 'Monthly':
+        case 'Aylık':
             // Last 30 days
             startDate.setDate(startDate.getDate() - 29);
             break;
@@ -71,6 +71,19 @@ export const getBloodPressuresByPeriod = async (period: PeriodType): Promise<Blo
     );
 };
 
+export const getBloodPressuresByDate = async (date: Date): Promise<BloodPressure[]> => {
+    const db = await getDB();
+    const startDate = new Date(date);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 999);
+
+    return await db.getAllAsync<BloodPressure>(
+        'SELECT * FROM blood_pressure WHERE measure_time >= ? AND measure_time <= ? ORDER BY measure_time DESC',
+        [startDate.toISOString(), endDate.toISOString()]
+    );
+};
+
 export interface BloodSugar {
     id?: number;
     level: number;
@@ -99,6 +112,19 @@ export const getBloodSugarsByPeriod = async (period: PeriodType): Promise<BloodS
     return await db.getAllAsync<BloodSugar>(
         'SELECT * FROM blood_sugar WHERE measure_time >= ? AND measure_time <= ? ORDER BY measure_time DESC',
         [startDate, endDate]
+    );
+}
+
+export const getBloodSugarsByDate = async (date: Date): Promise<BloodSugar[]> => {
+    const db = await getDB();
+    const startDate = new Date(date);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 999);
+
+    return await db.getAllAsync<BloodSugar>(
+        'SELECT * FROM blood_sugar WHERE measure_time >= ? AND measure_time <= ? ORDER BY measure_time DESC',
+        [startDate.toISOString(), endDate.toISOString()]
     );
 }
 

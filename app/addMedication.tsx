@@ -6,6 +6,7 @@ import MedTime from "@/src/components/AddMedicationScreen/MedTime";
 import { ScheduleType, useMedicationForm, WEEK_DAYS } from "@/src/hooks/useMedicationForm";
 import { useLocalSearchParams } from "expo-router";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Modal,
   ScrollView,
@@ -20,6 +21,7 @@ import styles from "../src/styles/AddMedicationStyles";
 const AddMedicationScreen = () => {
   const { id } = useLocalSearchParams();
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   const {
     medName, setMedName,
@@ -32,7 +34,8 @@ const AddMedicationScreen = () => {
     tempMinute, setTempMinute,
     withFood, setWithFood,
     medicineForm, setMedicineForm,
-    dosage, setDosage,
+    dosageAmount, setDosageAmount,
+    dosageUnit, setDosageUnit,
     scheduleType, setScheduleType,
     selectedWeekDays, toggleWeekDay,
     selectedMonthDays, toggleMonthDay,
@@ -45,7 +48,7 @@ const AddMedicationScreen = () => {
     <SafeAreaView style={[{ backgroundColor: colors.background }, { flex: 1 }]}>
       <View style={styles.container}>
         <Text style={[styles.title, { color: colors.text }]}>
-          {id ? "İlacı Düzenle" : "İlaç Ekle"}
+          {id ? t('addMedicationScreen.editTitle') : t('addMedicationScreen.title')}
         </Text>
 
         <ScrollView showsVerticalScrollIndicator={false}>
@@ -54,8 +57,10 @@ const AddMedicationScreen = () => {
             <MedForm
               medicineForm={medicineForm}
               setMedicineForm={setMedicineForm}
-              dosage={dosage}
-              setDosage={setDosage}
+              dosageAmount={dosageAmount}
+              setDosageAmount={setDosageAmount}
+              dosageUnit={dosageUnit}
+              setDosageUnit={setDosageUnit}
             />
             <MedTime
               durationValue={durationValue}
@@ -67,7 +72,7 @@ const AddMedicationScreen = () => {
             {/* Schedule Type Selection */}
             <View>
               <Text style={[styles.label, { color: colors.text }]}>
-                Ne Sıklıkla?
+                {t('addMedicationScreen.howOften')}
               </Text>
               <View style={styles.durationRow}>
                 {(["daily", "weekly", "monthly"] as ScheduleType[]).map(
@@ -97,10 +102,10 @@ const AddMedicationScreen = () => {
                         }}
                       >
                         {type === "daily"
-                          ? "Her Gün"
+                          ? t('addMedicationScreen.daily')
                           : type === "weekly"
-                            ? "Haftalık"
-                            : "Aylık"}
+                            ? t('addMedicationScreen.weekly')
+                            : t('addMedicationScreen.monthly')}
                       </Text>
                     </TouchableOpacity>
                   )
@@ -112,7 +117,7 @@ const AddMedicationScreen = () => {
             {scheduleType === "weekly" && (
               <View>
                 <Text style={[styles.label, { color: colors.text }]}>
-                  Hangi Günler?
+                  {t('addMedicationScreen.whichDays')}
                 </Text>
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                   {WEEK_DAYS.map((day) => (
@@ -153,7 +158,7 @@ const AddMedicationScreen = () => {
             {scheduleType === "monthly" && (
               <View>
                 <Text style={[styles.label, { color: colors.text }]}>
-                  Ayın Hangi Günleri?
+                  {t('addMedicationScreen.whichDaysOfMonth')}
                 </Text>
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
                   {Array.from({ length: 31 }, (_, i) => (i + 1).toString()).map(
@@ -210,7 +215,7 @@ const AddMedicationScreen = () => {
             {parseInt(frequency) === 1 && (
               <View>
                 <Text style={[styles.label, { color: colors.text }]}>
-                  Saat
+                  {t('addMedicationScreen.time')}
                 </Text>
                 <TouchableOpacity
                   onPress={() => openTimePicker(0)}
@@ -222,7 +227,7 @@ const AddMedicationScreen = () => {
                       fontSize: 16,
                     }}
                   >
-                    {timeInputs[0] || "Saat seçin"}
+                    {timeInputs[0] || t('addMedicationScreen.selectTime')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -230,7 +235,7 @@ const AddMedicationScreen = () => {
 
             <View>
               <Text style={[styles.label, { color: colors.text }]}>
-                Aç mı Tok mu?
+                {t('addMedicationScreen.emptyOrFull')}
               </Text>
               <View style={styles.foodRow}>
                 <TouchableOpacity
@@ -249,7 +254,7 @@ const AddMedicationScreen = () => {
                       { color: withFood === "aç" ? "white" : colors.text }
                     ]}
                   >
-                    Aç
+                    {t('addMedicationScreen.empty')}
                   </Text>
                 </TouchableOpacity>
 
@@ -269,7 +274,7 @@ const AddMedicationScreen = () => {
                       { color: withFood === "tok" ? "white" : colors.text }
                     ]}
                   >
-                    Tok
+                    {t('addMedicationScreen.full')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -281,13 +286,13 @@ const AddMedicationScreen = () => {
           <View style={styles.modalOverlay}>
             <View style={[styles.modalContainer, { backgroundColor: colors.surface }]}>
               <Text style={[styles.modalTitle, { color: colors.text }]}>
-                Saat Seçin
+                {t('addMedicationScreen.selectTimeTitle')}
               </Text>
 
               <View style={styles.timePickerRow}>
                 <View style={styles.timePickerColumn}>
                   <Text style={[styles.timePickerLabel, { color: colors.text }]}>
-                    Saat
+                    {t('addMedicationScreen.hour')}
                   </Text>
                   <ScrollView
                     style={styles.timePickerScroll}
@@ -329,7 +334,7 @@ const AddMedicationScreen = () => {
 
                 <View style={styles.timePickerColumn}>
                   <Text style={[styles.timePickerLabel, { color: colors.text }]}>
-                    Dakika
+                    {t('addMedicationScreen.minute')}
                   </Text>
                   <ScrollView
                     style={styles.timePickerScroll}
@@ -371,14 +376,14 @@ const AddMedicationScreen = () => {
                   onPress={() => setShowTimePicker(false)}
                   style={[styles.modalButton, { backgroundColor: colors.textSecondary }]}
                 >
-                  <Text style={styles.modalButtonText}>İptal</Text>
+                  <Text style={styles.modalButtonText}>{t('addMedicationScreen.cancel')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   onPress={confirmTime}
                   style={[styles.modalButton, { backgroundColor: colors.secondary }]}
                 >
-                  <Text style={styles.modalButtonText}>Tamam</Text>
+                  <Text style={styles.modalButtonText}>{t('addMedicationScreen.ok')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -390,7 +395,7 @@ const AddMedicationScreen = () => {
           style={[styles.saveButton, { backgroundColor: colors.secondary }]}
         >
           <Text style={styles.saveButtonText}>
-            {id ? "İlacı Güncelle" : "İlacı Kaydet"}
+            {id ? t('addMedicationScreen.update') : t('addMedicationScreen.save')}
           </Text>
         </TouchableOpacity>
       </View>

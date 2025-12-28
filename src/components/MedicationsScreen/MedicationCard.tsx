@@ -1,5 +1,6 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
 import { Medicine } from "../../database/medicineRepository";
@@ -14,11 +15,11 @@ const MedicationCard = ({
   onEdit: (medicine: Medicine) => void;
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   // Debug log
   console.log(
-    `Rendering MedicationCard for ${
-      medication.name
+    `Rendering MedicationCard for ${medication.name
     }. onDelete: ${!!onDelete}, onEdit: ${!!onEdit}`
   );
 
@@ -56,20 +57,20 @@ const MedicationCard = ({
           <Text
             style={{ color: colors.textSecondary, fontSize: 14, marginTop: 2 }}
           >
-            {medication.dosage || "Dozaj bilgisi yok"}
+            {medication.dosage || t('medications.noDosageInfo')}
           </Text>
           <View style={{ flexDirection: "row", marginTop: 4, gap: 10 }}>
             <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
-              Günde {medication.frequency}x
+              {medication.frequency} {t('medications.timesPerDay')}
             </Text>
             {medication.instruction && (
               <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
                 •{" "}
                 {medication.instruction === "aç"
-                  ? "Aç karnına"
+                  ? t('medications.onEmptyStomach')
                   : medication.instruction === "tok"
-                  ? "Tok karnına"
-                  : medication.instruction}
+                    ? t('medications.onFullStomach')
+                    : medication.instruction}
               </Text>
             )}
           </View>
@@ -92,7 +93,7 @@ const MedicationCard = ({
         >
           <MaterialIcons name="delete" size={20} color={colors.error} />
           <Text style={{ color: colors.error, marginLeft: 8, fontSize: 16 }}>
-            Delete
+            {t('medications.delete')}
           </Text>
         </TouchableOpacity>
 
@@ -107,7 +108,7 @@ const MedicationCard = ({
         >
           <MaterialIcons name="edit" size={20} color="#007AFF" />
           <Text style={{ color: "#007AFF", marginLeft: 8, fontSize: 16 }}>
-            Edit
+            {t('medications.edit')}
           </Text>
         </TouchableOpacity>
       </View>

@@ -11,7 +11,7 @@ const MedClock = ({ timeInputs, openTimePicker }: {
   return (
     <View>
       <Text style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}>
-        Saatler
+        {t('addMedicationScreen.time')}
       </Text>
       {timeInputs.map((time, index) => (
         <View key={index} style={{ marginBottom: 10 }}>

@@ -1,5 +1,6 @@
 import { useFocusEffect } from "@react-navigation/native";
 import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
@@ -18,33 +19,40 @@ import { useTheme } from "../contexts/ThemeContext";
 import {
   addBloodSugar,
   BloodSugar,
+  getBloodSugarsByDate,
   getBloodSugarsByPeriod,
   PeriodType,
 } from "../database/measurementRepository";
 import styles from "../styles/SugarMeasurementsStyle";
 
 // Helper function to calculate sugar status based on level and type
-const calculateStatus = (level: number, type: string): string => {
-  if (type === "Açlık") {
+const calculateStatus = (level: number, type: string, t: any): string => {
+  if (type === t('sugar.fasting') || type === "Açlık") {
     // Fasting blood sugar levels
-    if (level < 70) return "Düşük";
-    if (level <= 100) return "Normal";
-    if (level <= 125) return "Yüksek";
-    return "Çok Yüksek";
+    if (level < 70) return t('sugar.statusLow');
+    if (level <= 100) return t('sugar.statusNormal');
+    if (level <= 125) return t('sugar.statusHigh');
+    return t('sugar.statusVeryHigh');
   } else {
     // Postprandial (after meal) blood sugar levels
-    if (level < 70) return "Düşük";
-    if (level <= 140) return "Normal";
-    if (level <= 199) return "Yüksek";
-    return "Çok Yüksek";
+    if (level < 70) return t('sugar.statusLow');
+    if (level <= 140) return t('sugar.statusNormal');
+    if (level <= 199) return t('sugar.statusHigh');
+    return t('sugar.statusVeryHigh');
   }
 };
 
-// Helper function to format measure_time to display time
+// Helper function to format measure_time to display date and time
 const formatTime = (measureTime: string): string => {
   try {
     const date = new Date(measureTime);
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return date.toLocaleString("tr-TR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   } catch {
     return measureTime;
   }
@@ -67,8 +75,10 @@ const SugarMeasurementsScreen = ({
   autoOpenModal = false,
 }: SugarMeasurementsScreenProps) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState<PeriodType>("Daily");
+  const [activeTab, setActiveTab] = useState<PeriodType>("Günlük");
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [sugarMeasurements, setSugarMeasurements] = useState<SugarCardData[]>(
     []
   );
@@ -89,13 +99,18 @@ const SugarMeasurementsScreen = ({
   const fetchSugarMeasurements = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await getBloodSugarsByPeriod(activeTab);
+      let data;
+      if (activeTab === "Günlük") {
+        data = await getBloodSugarsByDate(selectedDate);
+      } else {
+        data = await getBloodSugarsByPeriod(activeTab);
+      }
       // Map database records to SugarCard format
       const formattedData: SugarCardData[] = data.map((sugar: BloodSugar) => ({
         id: sugar.id || 0,
         level: sugar.level,
         time: formatTime(sugar.measure_time),
-        status: calculateStatus(sugar.level, sugar.type),
+        status: calculateStatus(sugar.level, sugar.type, t),
         type: sugar.type,
         note: sugar.note || "",
       }));
@@ -105,7 +120,7 @@ const SugarMeasurementsScreen = ({
     } finally {
       setLoading(false);
     }
-  }, [activeTab]);
+  }, [activeTab, selectedDate]);
 
   // Reload data when screen gains focus or when activeTab changes
   useFocusEffect(
@@ -144,7 +159,7 @@ const SugarMeasurementsScreen = ({
   const chartData = [...sugarMeasurements].reverse();
   const chartDataSugar = chartData.map((item) => ({
     value: item.level,
-    label: item.time,
+    label: new Date(item.time.split(" ")[0].split(".").reverse().join("-")).getDate().toString(),
     dataPointText: item.level.toString(),
   }));
 
@@ -153,7 +168,12 @@ const SugarMeasurementsScreen = ({
       <View style={styles.container}>
         <TopBar />
         <PeriodTabs activeTab={activeTab} onTabChange={handleTabChange} />
-        <DateSelection />
+        {activeTab === "Günlük" && (
+          <DateSelection
+            date={selectedDate}
+            onDateChange={setSelectedDate}
+          />
+        )}
         <View
           style={{ height: 250, paddingVertical: 10, paddingHorizontal: 0 }}
         >
@@ -198,7 +218,7 @@ const SugarMeasurementsScreen = ({
               }}
             >
               <Text style={{ color: colors.textSecondary }}>
-                {loading ? "" : "Bu dönemde ölçüm yok"}
+                {loading ? "" : t('sugar.noDataInChart')}
               </Text>
             </View>
           )}
@@ -226,7 +246,7 @@ const SugarMeasurementsScreen = ({
                 }}
               >
                 <Text style={{ color: colors.textSecondary }}>
-                  Bu dönemde kan şekeri ölçümü yok.
+                  {t('sugar.noMeasurementsInPeriod')}
                 </Text>
               </View>
             }
@@ -239,7 +259,7 @@ const SugarMeasurementsScreen = ({
       >
         <View style={[styles.addBtn, { backgroundColor: colors.iconGreen }]}>
           <Text style={[styles.addBtnText, { color: "#fff" }]}>
-            + Add Sugar Measurement
+            {t('sugar.addButton')}
           </Text>
         </View>
       </TouchableOpacity>

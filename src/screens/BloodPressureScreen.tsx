@@ -1,5 +1,6 @@
 import { useFocusEffect } from "@react-navigation/native";
 import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
@@ -18,28 +19,35 @@ import { useTheme } from "../contexts/ThemeContext";
 import {
   addBloodPressure,
   BloodPressure,
+  getBloodPressuresByDate,
   getBloodPressuresByPeriod,
   PeriodType,
 } from "../database/measurementRepository";
 import styles from "../styles/BloodPressureStyle";
 
 // Helper function to calculate blood pressure status
-const calculateStatus = (systolic: number, diastolic: number): string => {
+const calculateStatus = (systolic: number, diastolic: number, t: any): string => {
   if (systolic < 90 || diastolic < 60) {
-    return "Düşük";
+    return t('bloodPressure.statusLow');
   } else if (systolic >= 140 || diastolic >= 90) {
-    return "Yüksek";
+    return t('bloodPressure.statusHigh');
   } else if (systolic >= 120 || diastolic >= 80) {
-    return "Hafif Yüksek";
+    return t('bloodPressure.statusElevated');
   }
-  return "Normal";
+  return t('bloodPressure.statusNormal');
 };
 
-// Helper function to format measure_time to display time
+// Helper function to format measure_time to display date and time
 const formatTime = (measureTime: string): string => {
   try {
     const date = new Date(measureTime);
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return date.toLocaleString("tr-TR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   } catch {
     return measureTime;
   }
@@ -63,8 +71,10 @@ const BloodPressureScreen = ({
   autoOpenModal = false,
 }: BloodPressureScreenProps) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState<PeriodType>("Daily");
+  const [activeTab, setActiveTab] = useState<PeriodType>("Günlük");
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [bloodPressures, setBloodPressures] = useState<BloodCardData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -83,7 +93,12 @@ const BloodPressureScreen = ({
   const fetchBloodPressures = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await getBloodPressuresByPeriod(activeTab);
+      let data;
+      if (activeTab === "Günlük") {
+        data = await getBloodPressuresByDate(selectedDate);
+      } else {
+        data = await getBloodPressuresByPeriod(activeTab);
+      }
       // Map database records to BloodCard format
       const formattedData: BloodCardData[] = data.map((bp: BloodPressure) => ({
         id: bp.id || 0,
@@ -91,7 +106,7 @@ const BloodPressureScreen = ({
         diastolic: bp.diastolic,
         pulse: bp.pulse,
         time: formatTime(bp.measure_time),
-        status: calculateStatus(bp.systolic, bp.diastolic),
+        status: calculateStatus(bp.systolic, bp.diastolic, t),
         note: bp.note || "",
       }));
       setBloodPressures(formattedData);
@@ -100,7 +115,7 @@ const BloodPressureScreen = ({
     } finally {
       setLoading(false);
     }
-  }, [activeTab]);
+  }, [activeTab, selectedDate]);
 
   // Reload data when screen gains focus or when activeTab changes
   useFocusEffect(
@@ -141,7 +156,7 @@ const BloodPressureScreen = ({
   const chartData = [...bloodPressures].reverse();
   const chartDataSystolic = chartData.map((item) => ({
     value: item.systolic,
-    label: item.time,
+    label: new Date(item.time.split(" ")[0].split(".").reverse().join("-")).getDate().toString(),
     dataPointText: item.systolic.toString(),
   }));
   const chartDataDiastolic = chartData.map((item) => ({
@@ -154,7 +169,12 @@ const BloodPressureScreen = ({
       <View style={styles.container}>
         <TopBar />
         <PeriodTabs activeTab={activeTab} onTabChange={handleTabChange} />
-        <DateSelection />
+        {activeTab === "Günlük" && (
+          <DateSelection
+            date={selectedDate}
+            onDateChange={setSelectedDate}
+          />
+        )}
         <View
           style={{ height: 200, paddingVertical: 10, paddingHorizontal: 0 }}
         >
@@ -209,7 +229,7 @@ const BloodPressureScreen = ({
               }}
             >
               <Text style={{ color: colors.textSecondary }}>
-                {loading ? "" : "Bu dönemde ölçüm yok"}
+                {loading ? "" : t('bloodPressure.noDataInChart')}
               </Text>
             </View>
           )}
@@ -237,7 +257,7 @@ const BloodPressureScreen = ({
                 }}
               >
                 <Text style={{ color: colors.textSecondary }}>
-                  Bu dönemde kan basıncı ölçümü yok.
+                  {t('bloodPressure.noMeasurementsInPeriod')}
                 </Text>
               </View>
             }
@@ -250,7 +270,7 @@ const BloodPressureScreen = ({
       >
         <View style={[styles.addBtn, { backgroundColor: colors.iconGreen }]}>
           <Text style={[styles.addBtnText, { color: "#fff" }]}>
-            + Add Blood Pressure
+            {t('bloodPressure.addButton')}
           </Text>
         </View>
       </TouchableOpacity>

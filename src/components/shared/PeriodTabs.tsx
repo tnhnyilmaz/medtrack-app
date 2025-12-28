@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
 
@@ -11,9 +12,18 @@ interface PeriodTabsProps {
 const PeriodTabs = ({
   activeTab,
   onTabChange,
-  tabs = ["Daily", "Weekly", "Monthly"],
+  tabs = ["Günlük", "Haftalık", "Aylık"],
 }: PeriodTabsProps) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
+
+  // Translation mapping for tabs
+  const getTabLabel = (tab: string) => {
+    if (tab === "Günlük" || tab === t('period.daily')) return t('period.daily');
+    if (tab === "Haftalık" || tab === t('period.weekly')) return t('period.weekly');
+    if (tab === "Aylık" || tab === t('period.monthly')) return t('period.monthly');
+    return tab;
+  };
 
   return (
     <View
@@ -52,7 +62,7 @@ const PeriodTabs = ({
                   : { color: colors.textSecondary }),
               }}
             >
-              {tab}
+              {getTabLabel(tab)}
             </Text>
           </Pressable>
         ))}

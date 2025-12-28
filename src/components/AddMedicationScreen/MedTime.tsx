@@ -1,24 +1,27 @@
 import { useTheme } from "@/src/contexts/ThemeContext";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 
-const MedTime = ({ durationValue, setDurationValue, durationType, setDurationType }: { 
-  durationValue: string; 
-  setDurationValue: (value: string) => void; 
-  durationType: string; 
-  setDurationType: (value: string) => void; 
+const MedTime = ({ durationValue, setDurationValue, durationType, setDurationType }: {
+  durationValue: string;
+  setDurationValue: (value: string) => void;
+  durationType: string;
+  setDurationType: (value: string) => void;
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
+
   return (
     <View>
       <Text style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}>
-        Ne Kadar Süre Kullanacaksınız?
+        {t('addMedicationScreen.durationTitle')}
       </Text>
       <View style={{ flexDirection: "row", gap: 10 }}>
         <TextInput
           value={durationValue}
           onChangeText={setDurationValue}
-          placeholder="Süre"
+          placeholder={t('addMedicationScreen.durationPlaceholder')}
           placeholderTextColor={colors.textSecondary}
           keyboardType="numeric"
           style={{
@@ -52,7 +55,7 @@ const MedTime = ({ durationValue, setDurationValue, durationType, setDurationTyp
                 fontSize: 14,
               }}
             >
-              Gün
+              {t('addMedicationScreen.durationType.gun')}
             </Text>
           </TouchableOpacity>
 
@@ -75,7 +78,7 @@ const MedTime = ({ durationValue, setDurationValue, durationType, setDurationTyp
                 fontSize: 14,
               }}
             >
-              Hafta
+              {t('addMedicationScreen.durationType.hafta')}
             </Text>
           </TouchableOpacity>
 
@@ -98,7 +101,7 @@ const MedTime = ({ durationValue, setDurationValue, durationType, setDurationTyp
                 fontSize: 14,
               }}
             >
-              Ay
+              {t('addMedicationScreen.durationType.ay')}
             </Text>
           </TouchableOpacity>
 
@@ -121,7 +124,7 @@ const MedTime = ({ durationValue, setDurationValue, durationType, setDurationTyp
                 fontSize: 14,
               }}
             >
-              Yıl
+              {t('addMedicationScreen.durationType.yil')}
             </Text>
           </TouchableOpacity>
         </View>

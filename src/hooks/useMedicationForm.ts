@@ -36,7 +36,8 @@ export const useMedicationForm = (id?: string) => {
     const [tempMinute, setTempMinute] = useState("00");
     const [withFood, setWithFood] = useState("");
     const [medicineForm, setMedicineForm] = useState("");
-    const [dosage, setDosage] = useState("");
+    const [dosageAmount, setDosageAmount] = useState("");
+    const [dosageUnit, setDosageUnit] = useState("mg");
 
     const [scheduleType, setScheduleType] = useState<ScheduleType>("daily");
     const [selectedWeekDays, setSelectedWeekDays] = useState<string[]>([]);
@@ -56,7 +57,22 @@ export const useMedicationForm = (id?: string) => {
                 setFrequency(medicine.frequency.toString());
                 setWithFood(medicine.instruction || "");
                 setMedicineForm(medicine.form || "");
-                setDosage(medicine.dosage || "");
+
+                // Parse dosage
+                if (medicine.dosage) {
+                    const match = medicine.dosage.match(/^(\d+(\.\d+)?)\s*(.*)$/);
+                    if (match) {
+                        setDosageAmount(match[1]);
+                        setDosageUnit(match[3] || "mg");
+                    } else {
+                        setDosageAmount(medicine.dosage);
+                        setDosageUnit("mg");
+                    }
+                } else {
+                    setDosageAmount("");
+                    setDosageUnit("mg");
+                }
+
                 setScheduleType(medicine.schedule_type || "daily");
 
                 if (medicine.schedule_days) {
@@ -160,13 +176,15 @@ export const useMedicationForm = (id?: string) => {
             return;
         }
 
+        const finalDosage = dosageAmount ? `${dosageAmount} ${dosageUnit}`.trim() : "";
+
         try {
             let targetId = Number(id);
             if (id) {
                 await updateMedicine(targetId, {
                     id: targetId,
                     name: medName,
-                    dosage: dosage,
+                    dosage: finalDosage,
                     form: medicineForm,
                     frequency: parseInt(frequency),
                     instruction: withFood,
@@ -178,7 +196,7 @@ export const useMedicationForm = (id?: string) => {
             } else {
                 targetId = await addMedicine({
                     name: medName,
-                    dosage: dosage,
+                    dosage: finalDosage,
                     form: medicineForm,
                     frequency: parseInt(frequency),
                     instruction: withFood,
@@ -255,8 +273,10 @@ export const useMedicationForm = (id?: string) => {
         setWithFood,
         medicineForm,
         setMedicineForm,
-        dosage,
-        setDosage,
+        dosageAmount,
+        setDosageAmount,
+        dosageUnit,
+        setDosageUnit,
         scheduleType,
         setScheduleType,
         selectedWeekDays,

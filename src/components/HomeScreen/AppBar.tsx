@@ -1,7 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Image, Text, TouchableOpacity, View } from "react-native";
+import { useLanguage } from "../../contexts/LanguageContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useUser } from "../../contexts/UserContext";
 import styles from "../../styles/HomeScreenStyles";
@@ -13,13 +15,16 @@ const AppBar = () => {
   const { colors } = useTheme();
   const { user } = useUser();
   const router = useRouter();
-  const today = new Date().toLocaleDateString("tr-TR", {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
+
+  const today = new Date().toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
 
-  const displayName = user.name || "Kullanıcı";
+  const displayName = user.name || t('profile.defaultUser');
   const photoUri = user.photo || DEFAULT_AVATAR;
 
   return (
@@ -56,10 +61,10 @@ const AppBar = () => {
         </TouchableOpacity>
         <View>
           <Text style={[styles.bigText, { color: colors.text }]}>
-            Merhaba, {displayName}
+            {t('home.hello')}, {displayName}
           </Text>
           <Text style={[styles.mediumText, { color: colors.text }]}>
-            Bugün, {today}
+            {t('home.today')}, {today}
           </Text>
         </View>
       </View>

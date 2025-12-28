@@ -1,5 +1,6 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Alert, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MedAppBar from "../components/MedicationsScreen/MedAppBar";
@@ -14,6 +15,7 @@ import {
 const MedicationsScreen = () => {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [searchText, setSearchText] = useState("");
 
   const [medications, setMedications] = useState<Medicine[]>([]);
@@ -34,10 +36,10 @@ const MedicationsScreen = () => {
   };
 
   const handleDelete = (id: number) => {
-    Alert.alert("İlacı Sil", "Bu ilacı silmek istediğinizden emin misiniz?", [
-      { text: "İptal", style: "cancel" },
+    Alert.alert(t('medications.deleteTitle'), t('medications.deleteMessage'), [
+      { text: t('medications.cancel'), style: "cancel" },
       {
-        text: "Sil",
+        text: t('medications.delete'),
         style: "destructive",
         onPress: async () => {
           try {
@@ -45,7 +47,7 @@ const MedicationsScreen = () => {
             loadMedicines();
           } catch (error) {
             console.error(error);
-            Alert.alert("Hata Detayı (GÜNCEL KOD)", `Mesaj: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+            Alert.alert(t('medications.errorTitle'), `Mesaj: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
           }
         },
       },

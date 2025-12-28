@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Animated,
   Dimensions,
@@ -29,49 +30,50 @@ interface ActionMenuItem {
   color: string;
 }
 
-const tabs: TabItem[] = [
+// These will be populated dynamically with translations
+const getTabs = (t: any): TabItem[] => [
   {
     name: "index",
-    label: "Ana Sayfa",
+    label: t('navigation.home'),
     icon: "home",
     iconOutline: "home-outline",
   },
   {
     name: "calendar",
-    label: "İlaçlarım",
+    label: t('navigation.myMedications'),
     icon: "medkit",
     iconOutline: "medkit-outline",
   },
   { name: "add", label: "", icon: "add", iconOutline: "add" },
   {
     name: "reports",
-    label: "Raporlar",
+    label: t('navigation.reports'),
     icon: "bar-chart",
     iconOutline: "bar-chart-outline",
   },
   {
     name: "profile",
-    label: "Profil",
+    label: t('navigation.profile'),
     icon: "person",
     iconOutline: "person-outline",
   },
 ];
 
-const actionMenuItems: ActionMenuItem[] = [
+const getActionMenuItems = (t: any): ActionMenuItem[] => [
   {
-    label: "İlaç Ekle",
+    label: t('navigation.addMed'),
     icon: "medical",
     route: "/addMedication",
     color: "#4CAF50",
   },
   {
-    label: "Tansiyon Ekle",
+    label: t('navigation.addBP'),
     icon: "heart",
     route: "/bloodPressureScreen?openModal=true",
     color: "#E53935",
   },
   {
-    label: "Şeker Ölçümü Ekle",
+    label: t('navigation.addSugar'),
     icon: "water",
     route: "/sugarMeasurementsScreen?openModal=true",
     color: "#FF9800",
@@ -82,7 +84,11 @@ export default function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const { colors } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const [menuVisible, setMenuVisible] = useState(false);
+
+  const tabs = getTabs(t);
+  const actionMenuItems = getActionMenuItems(t);
 
   // Animation values
   const backdropOpacity = useRef(new Animated.Value(0)).current;

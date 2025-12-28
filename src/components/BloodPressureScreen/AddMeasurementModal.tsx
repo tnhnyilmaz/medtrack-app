@@ -1,5 +1,6 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -26,6 +27,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
   onSave,
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [measurementTime, setMeasurementTime] = useState<"Now" | "Custom">(
     "Now"
   );
@@ -42,9 +44,9 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
       time:
         measurementTime === "Now"
           ? new Date().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })
+            hour: "2-digit",
+            minute: "2-digit",
+          })
           : "Custom",
       note,
     };
@@ -87,7 +89,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                     <AntDesign name="close" size={24} color={colors.text} />
                   </Pressable>
                   <Text style={[localStyles.title, { color: colors.text }]}>
-                    Tansiyon Ekle
+                    {t('bloodPressure.addTitle')}
                   </Text>
                   <View style={{ width: 24 }} />
                 </View>
@@ -96,7 +98,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                 <Text
                   style={[localStyles.label, { color: colors.textSecondary }]}
                 >
-                  Ölçüm Zamanı
+                  {t('bloodPressure.measurementTime')}
                 </Text>
                 <View
                   style={[
@@ -125,7 +127,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                             : colors.textSecondary,
                       }}
                     >
-                      Şimdi
+                      {t('bloodPressure.now')}
                     </Text>
                   </Pressable>
                   <Pressable
@@ -149,7 +151,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                             : colors.textSecondary,
                       }}
                     >
-                      Özel
+                      {t('bloodPressure.custom')}
                     </Text>
                   </Pressable>
                 </View>
@@ -163,7 +165,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                         { color: colors.textSecondary },
                       ]}
                     >
-                      Sistolik (SYS)
+                      {t('bloodPressure.systolic')}
                     </Text>
                     <View
                       style={[
@@ -193,7 +195,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                         { color: colors.textSecondary },
                       ]}
                     >
-                      Diastolik (DIA)
+                      {t('bloodPressure.diastolic')}
                     </Text>
                     <View
                       style={[
@@ -223,7 +225,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                   <Text
                     style={[localStyles.label, { color: colors.textSecondary }]}
                   >
-                    Nabız
+                    {t('bloodPressure.pulse')}
                   </Text>
                   <View
                     style={[
@@ -250,7 +252,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                   <Text
                     style={[localStyles.label, { color: colors.textSecondary }]}
                   >
-                    Not
+                    {t('bloodPressure.note')}
                   </Text>
                   <View
                     style={[
@@ -271,7 +273,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                           textAlignVertical: "top",
                         },
                       ]}
-                      placeholder="Not ekle..."
+                      placeholder={t('bloodPressure.notePlaceholder')}
                       placeholderTextColor={colors.textSecondary}
                       multiline
                       value={note}
@@ -288,7 +290,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                   ]}
                   onPress={handleSave}
                 >
-                  <Text style={localStyles.saveButtonText}>Ölçümü Kaydet</Text>
+                  <Text style={localStyles.saveButtonText}>{t('bloodPressure.saveMeasurement')}</Text>
                 </Pressable>
               </View>
             </KeyboardAvoidingView>

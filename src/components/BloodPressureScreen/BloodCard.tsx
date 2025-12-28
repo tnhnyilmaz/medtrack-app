@@ -2,6 +2,7 @@ import { useTheme } from "@/src/contexts/ThemeContext";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 import styles from "../../styles/BloodPressureStyle";
 
@@ -16,6 +17,7 @@ interface BloodDataProps {
 
 const BloodCard = ({ data }: { data: BloodDataProps }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   // --- RENK BELİRLEME FONKSİYONU ---
   const getStatusStyle = (status: string) => {
@@ -25,31 +27,34 @@ const BloodCard = ({ data }: { data: BloodDataProps }) => {
     const successColor = colors.success || "#34C759"; // Yeşil
     const defaultColor = colors.textSecondary || "#8E8E93"; // Gri
 
-    // Not: Hex kodunun sonuna '20' ekleyerek %15-20 opaklık sağlıyoruz.
-    // Eğer theme renklerin 'rgb' formatındaysa bu çalışmayabilir, hex olmalı.
-    switch (status) {
-      case "Yüksek":
-      case "Hafif Yüksek":
-        return {
-          color: errorColor,
-          backgroundColor: `${errorColor}20`, // %20 opak kırmızı arka plan
-        };
-      case "Düşük":
-        return {
-          color: warningColor,
-          backgroundColor: `${warningColor}20`, // %20 opak turuncu arka plan
-        };
-      case "Normal":
-        return {
-          color: successColor,
-          backgroundColor: `${successColor}20`, // %20 opak yeşil arka plan
-        };
-      default:
-        return {
-          color: defaultColor,
-          backgroundColor: `${defaultColor}20`,
-        };
+    // Check both Turkish and English status texts
+    const isHigh = status === "Yüksek" || status === "Hafif Yüksek" ||
+      status === t('bloodPressure.statusHigh') || status === t('bloodPressure.statusElevated');
+    const isLow = status === "Düşük" || status === t('bloodPressure.statusLow');
+    const isNormal = status === "Normal" || status === t('bloodPressure.statusNormal');
+
+    if (isHigh) {
+      return {
+        color: errorColor,
+        backgroundColor: `${errorColor}20`,
+      };
     }
+    if (isLow) {
+      return {
+        color: warningColor,
+        backgroundColor: `${warningColor}20`,
+      };
+    }
+    if (isNormal) {
+      return {
+        color: successColor,
+        backgroundColor: `${successColor}20`,
+      };
+    }
+    return {
+      color: defaultColor,
+      backgroundColor: `${defaultColor}20`,
+    };
   };
 
   const statusStyle = getStatusStyle(data.status);
@@ -86,7 +91,7 @@ const BloodCard = ({ data }: { data: BloodDataProps }) => {
             />
           </View>
           <View>
-            <Text style={styles.bloodText}>
+            <Text style={[styles.bloodText, { color: colors.text }]}>
               {data.systolic}/{data.diastolic} mmHg
             </Text>
             <View style={[styles.row, { gap: 10 }]}>
@@ -141,7 +146,7 @@ const BloodCard = ({ data }: { data: BloodDataProps }) => {
           <Text
             style={{ fontWeight: "bold", color: colors.text, marginBottom: 2 }}
           >
-            Not:
+            {t('bloodPressure.note')}:
           </Text>
           <Text
             style={{
