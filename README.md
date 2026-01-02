@@ -1,50 +1,66 @@
-# Welcome to your Expo app 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# MedTrack (Türkçe) 🏥
 
-## Get started
+MedTrack, React Native ve Expo ile geliştirilmiş kapsamlı bir kişisel sağlık yönetimi uygulamasıdır. Kullanıcıların ilaçlarını, sağlık ölçümlerini takip etmelerine ve tıbbi rutinlerini aksatmamaları için önemli hatırlatıcılar kurmalarına yardımcı olur.
 
-1. Install dependencies
+## 🌟 Temel Özellikler
 
-   ```bash
-   npm install
-   ```
+- **İlaç Takibi:** İlaçlarınızı detaylı programlarla ekleyin ve yönetin.
+- **Sağlık Ölçümleri:** Tansiyon, kan şekeri ve diğer hayati metrikleri kaydedin.
+- **Hatırlatıcılar ve Bildirimler:** Dahili uyarılar sayesinde hiçbir dozu veya ölçümü kaçırmayın.
+- **Görsel Analizler:** Sağlık verilerinizin trendlerini sezgisel grafiklerle görüntüleyin.
+- **Yerel Depolama:** Verileriniz SQLite kullanılarak cihazınızda güvenli bir şekilde saklanır.
+- **Çoklu Dil Desteği:** İngilizce ve Türkçe için tam yerelleştirme.
 
-2. Start the app
+## 🛠 Teknoloji Yığını
 
-   ```bash
-   npx expo start
-   ```
+- **Framework:** [React Native](https://reactnative.dev/) ve [Expo](https://expo.dev/)
+- **Yönlendirme:** [Expo Router](https://docs.expo.dev/router/introduction/) (Dosya tabanlı)
+- **Veritabanı:** [Expo SQLite](https://docs.expo.dev/versions/latest/sdk/sqlite/)
+- **Yerelleştirme:** [i18next](https://www.i18next.com/) & [react-i18next](https://react.i18next.com/)
+- **Grafikler:** [react-native-gifted-charts](https://github.com/Abhinandan-Kushwaha/react-native-gifted-charts)
+- **Tasarım:** React Native StyleSheet ve Linear Gradients ile özel bileşenler.
 
-In the output, you'll find options to open the app in a
+## 🚀 Başlarken
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+1.  **Depoyu kopyalayın:**
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+    ```bash
+    git clone <repository-url>
+    cd medtrack-app
+    ```
 
-## Get a fresh project
+2.  **Bağımlılıkları yükleyin:**
 
-When you're ready, run:
+    ```bash
+    npm install
+    ```
 
-```bash
-npm run reset-project
+3.  **Uygulamayı başlatın:**
+    ```bash
+    npx expo start
+    ```
+
+---
+
+## 📁 Project Structure / Proje Yapısı
+
+```text
+/app         - Route handlers & screens (Expo Router)
+/assets      - Images, fonts, and static assets
+/src
+  /components - Reusable UI components
+  /constants  - App constants and theme
+  /contexts   - React contexts (Language, Theme, etc.)
+  /database   - SQLite setup and queries
+  /hooks      - Custom React hooks
+  /i18n       - Localization files (EN/TR)
+  /services   - Notification and external services
+  /styles     - Global styles and theme tokens
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## 📄 License / Lisans
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+This project is private. All rights reserved. / Bu proje özeldir. Tüm hakları saklıdır.
