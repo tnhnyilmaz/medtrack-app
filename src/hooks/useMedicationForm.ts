@@ -16,7 +16,7 @@ export type ScheduleType = "daily" | "weekly" | "monthly";
 export const WEEK_DAYS = [
     { key: "monday", label: "Pzt" },
     { key: "tuesday", label: "Sal" },
-    { key: "wednesday", label: "Ã‡ar" },
+    { key: "wednesday", label: "Çar" },
     { key: "thursday", label: "Per" },
     { key: "friday", label: "Cum" },
     { key: "saturday", label: "Cmt" },
@@ -109,7 +109,7 @@ export const useMedicationForm = (id?: string) => {
             }
         } catch (error) {
             console.error(error);
-            Alert.alert("Hata", "Ä°laÃ§ bilgileri yÃ¼klenemedi.");
+            Alert.alert("Hata", "İlaç bilgileri yüklenemedi.");
         }
     };
 
@@ -160,34 +160,34 @@ export const useMedicationForm = (id?: string) => {
 
     const validateAndSave = async () => {
         if (!medName.trim()) {
-            Alert.alert("UyarÄ±", "LÃ¼tfen ilaÃ§ adÄ±nÄ± girin.");
+            Alert.alert("Uyarı", "Lütfen ilaç adını girin.");
             return;
         }
         if (!durationValue.trim() || !durationType) {
-            Alert.alert("UyarÄ±", "LÃ¼tfen kullanÄ±m sÃ¼resini ve sÃ¼re tipini seÃ§in.");
+            Alert.alert("Uyarı", "Lütfen kullanım süresini ve süre tipini seçin.");
             return;
         }
         if (!frequency.trim()) {
-            Alert.alert("UyarÄ±", "LÃ¼tfen gÃ¼nlÃ¼k kullanÄ±m sÄ±klÄ±ÄŸÄ±nÄ± girin.");
+            Alert.alert("Uyarı", "Lütfen günlük kullanım sıklığını girin.");
             return;
         }
         if (parseInt(frequency) >= 1) {
             const emptyTimes = timeInputs.filter((time) => !time.trim());
             if (emptyTimes.length > 0) {
-                Alert.alert("UyarÄ±", "LÃ¼tfen tÃ¼m saat bilgilerini girin.");
+                Alert.alert("Uyarı", "Lütfen tüm saat bilgilerini girin.");
                 return;
             }
         }
         if (!withFood) {
-            Alert.alert("UyarÄ±", "LÃ¼tfen aÃ§/tok durumunu seÃ§in.");
+            Alert.alert("Uyarı", "Lütfen aç/tok durumunu seçin.");
             return;
         }
         if (scheduleType === "weekly" && selectedWeekDays.length === 0) {
-            Alert.alert("UyarÄ±", "LÃ¼tfen en az bir gÃ¼n seÃ§in.");
+            Alert.alert("Uyarı", "Lütfen en az bir gün seçin.");
             return;
         }
         if (scheduleType === "monthly" && selectedMonthDays.length === 0) {
-            Alert.alert("UyarÄ±", "LÃ¼tfen ayÄ±n hangi gÃ¼nlerinde alÄ±nacaÄŸÄ±nÄ± seÃ§in.");
+            Alert.alert("Uyarı", "Lütfen ayın hangi günlerinde alınacağını seçin.");
             return;
         }
 
@@ -256,13 +256,13 @@ export const useMedicationForm = (id?: string) => {
             }
 
             Alert.alert(
-                "BaÅŸarÄ±lÄ±",
-                id ? "Ä°laÃ§ gÃ¼ncellendi!" : "Ä°laÃ§ baÅŸarÄ±yla kaydedildi!",
+                "Başarılı",
+                id ? "İlaç güncellendi!" : "İlaç başarıyla kaydedildi!",
                 [{ text: "Tamam", onPress: () => router.back() }]
             );
         } catch (error) {
             console.error(error);
-            Alert.alert("Hata", "Ä°laÃ§ kaydedilirken bir sorun oluÅŸtu.");
+            Alert.alert("Hata", "İlaç kaydedilirken bir sorun oluştu.");
         }
     };
 

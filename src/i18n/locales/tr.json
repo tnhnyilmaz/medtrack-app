@@ -77,18 +77,18 @@
         "legendDiastolic": "Diastolik",
         "analysisAverage": "Ortalama",
         "analysisPeak": "Tepe/Min",
-        "analysisCount": "Kay�t",
+        "analysisCount": "Kayıt",
         "trend": {
-            "up": "Sistolik trend y�kseliyor (+{{delta}} mmHg).",
-            "down": "Sistolik trend d���yor (-{{delta}} mmHg).",
-            "stable": "Sistolik trend stabil ({{delta}} mmHg de�i�im)."
+            "up": "Sistolik trend yükseliyor (+{{delta}} mmHg).",
+            "down": "Sistolik trend düşüyor (-{{delta}} mmHg).",
+            "stable": "Sistolik trend stabil ({{delta}} mmHg değişim)."
         },
         "errors": {
-            "requiredFields": "Ge�erli sistolik ve diastolik de�er girin.",
-            "invalidSystolic": "Sistolik de�er 60 ile 260 aras�nda olmal�.",
-            "invalidDiastolic": "Diastolik de�er 40 ile 150 aras�nda olmal�.",
-            "diastolicMustBeLower": "Diastolik de�er sistolikten k���k olmal�.",
-            "invalidPulse": "Nab�z de�eri 30 ile 220 aras�nda olmal�."
+            "requiredFields": "Geçerli sistolik ve diastolik değer girin.",
+            "invalidSystolic": "Sistolik değer 60 ile 260 arasında olmalı.",
+            "invalidDiastolic": "Diastolik değer 40 ile 150 arasında olmalı.",
+            "diastolicMustBeLower": "Diastolik değer sistolikten küçük olmalı.",
+            "invalidPulse": "Nabız değeri 30 ile 220 arasında olmalı."
         }
     },
     "sugar": {
@@ -117,15 +117,15 @@
         "legendLevel": "Glikoz seviyesi",
         "analysisAverage": "Ortalama",
         "analysisRange": "Min/Maks",
-        "analysisNormalRate": "Hedef aral�k",
+        "analysisNormalRate": "Hedef aralık",
         "trend": {
-            "up": "Trend y�kseliyor (+{{delta}} mg/dL, {{count}} kay�t).",
-            "down": "Trend d���yor (-{{delta}} mg/dL, {{count}} kay�t).",
-            "stable": "Trend stabil ({{delta}} mg/dL de�i�im, {{count}} kay�t)."
+            "up": "Trend yükseliyor (+{{delta}} mg/dL, {{count}} kayıt).",
+            "down": "Trend düşüyor (-{{delta}} mg/dL, {{count}} kayıt).",
+            "stable": "Trend stabil ({{delta}} mg/dL değişim, {{count}} kayıt)."
         },
         "errors": {
-            "requiredLevel": "Ge�erli bir glikoz de�eri girin.",
-            "invalidLevel": "Glikoz de�eri 20 ile 600 aras�nda olmal�."
+            "requiredLevel": "Geçerli bir glikoz değeri girin.",
+            "invalidLevel": "Glikoz değeri 20 ile 600 arasında olmalı."
         }
     },
     "period": {
