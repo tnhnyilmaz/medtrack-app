@@ -1,4 +1,5 @@
 import { UserProvider } from "@/src/contexts/UserContext";
+import { seedDemoData } from "@/src/services/demoDataService";
 import { requestNotificationPermissions } from "@/src/services/notificationService";
 import { Stack } from "expo-router";
 import { useEffect } from "react";
@@ -11,6 +12,7 @@ export default function RootLayout() {
   // Request notification permissions on app start
   useEffect(() => {
     requestNotificationPermissions();
+    seedDemoData();
   }, []);
 
   return (

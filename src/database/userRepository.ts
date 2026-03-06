@@ -63,3 +63,24 @@ export const clearUser = async (): Promise<void> => {
     const db = await initDB();
     await db.runAsync('DELETE FROM users WHERE id = 1');
 };
+
+/**
+ * Seed a default demo user when there is no user yet.
+ */
+export const seedDemoUser = async (): Promise<void> => {
+    const exists = await userExists();
+    if (exists) {
+        console.log("Demo user already exists, skipping...");
+        return;
+    }
+
+    await saveUser({
+        name: "Demo User",
+        email: "yilmaz.tunahaz@gmail.com",
+        birthday: "1995-07-12T00:00:00.000Z",
+        gender: "male",
+        photo: null,
+    });
+
+    console.log("Demo user created successfully");
+};

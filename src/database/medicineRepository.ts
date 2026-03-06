@@ -261,3 +261,123 @@ export const toggleMedicationIntake = async (
 
     return newStatus;
 };
+
+/**
+ * Seed demo medications with mixed schedule types and a few intake logs.
+ * This is intended for demo/showcase builds.
+ */
+export const seedMedicineData = async (): Promise<void> => {
+    const db = await initDB();
+    const existing = await db.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) as count FROM medicines"
+    );
+
+    if ((existing?.count ?? 0) > 0) {
+        console.log("Medicine seed data already exists, skipping...");
+        return;
+    }
+
+    const now = new Date();
+    const startDate = new Date(now);
+    startDate.setDate(now.getDate() - 14);
+    const startDateIso = startDate.toISOString();
+    const today = now.toISOString().split("T")[0];
+
+    const demoMedicines: {
+        name: string;
+        dosage: string;
+        form: string;
+        frequency: number;
+        instruction: string;
+        schedule_type: "daily" | "weekly" | "monthly";
+        schedule_days: string | null;
+        schedules: string[];
+    }[] = [
+            {
+                name: "Metformin",
+                dosage: "500 mg",
+                form: "tablet",
+                frequency: 2,
+                instruction: "tok",
+                schedule_type: "daily",
+                schedule_days: null,
+                schedules: ["08:00", "20:00"],
+            },
+            {
+                name: "Lisinopril",
+                dosage: "10 mg",
+                form: "tablet",
+                frequency: 1,
+                instruction: "ac",
+                schedule_type: "daily",
+                schedule_days: null,
+                schedules: ["09:00"],
+            },
+            {
+                name: "Vitamin D3",
+                dosage: "2000 IU",
+                form: "drops",
+                frequency: 1,
+                instruction: "tok",
+                schedule_type: "weekly",
+                schedule_days: JSON.stringify(["monday", "thursday"]),
+                schedules: ["10:00"],
+            },
+            {
+                name: "Omega 3",
+                dosage: "1000 mg",
+                form: "capsule",
+                frequency: 1,
+                instruction: "tok",
+                schedule_type: "monthly",
+                schedule_days: JSON.stringify(["1", "15"]),
+                schedules: ["13:00"],
+            },
+        ];
+
+    const insertedIds: number[] = [];
+
+    for (const med of demoMedicines) {
+        const result = await db.runAsync(
+            `INSERT INTO medicines (name, dosage, form, frequency, instruction, start_date, schedule_type, schedule_days)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                med.name,
+                med.dosage,
+                med.form,
+                med.frequency,
+                med.instruction,
+                startDateIso,
+                med.schedule_type,
+                med.schedule_days,
+            ]
+        );
+
+        const medicineId = result.lastInsertRowId;
+        insertedIds.push(medicineId);
+
+        for (const time of med.schedules) {
+            await db.runAsync(
+                "INSERT INTO schedules (medicine_id, time) VALUES (?, ?)",
+                [medicineId, time]
+            );
+        }
+    }
+
+    // Seed a few today logs so the home list looks alive on demo builds.
+    if (insertedIds.length >= 2) {
+        await db.runAsync(
+            `INSERT INTO intake_logs (medicine_id, schedule_time, taken_time, status, log_date)
+             VALUES (?, ?, ?, ?, ?)`,
+            [insertedIds[0], "08:00", "08:04", 1, today]
+        );
+
+        await db.runAsync(
+            `INSERT INTO intake_logs (medicine_id, schedule_time, taken_time, status, log_date)
+             VALUES (?, ?, ?, ?, ?)`,
+            [insertedIds[1], "09:00", null, 0, today]
+        );
+    }
+
+    console.log("Medicine seed data created successfully");
+};
