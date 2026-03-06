@@ -1,9 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { Animated, Easing, Image, Text, TouchableOpacity, View } from "react-native";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useUser } from "../../contexts/UserContext";
@@ -34,9 +34,50 @@ const AppBar = () => {
   });
   const dayLabel = now.toLocaleDateString(locale, { day: "2-digit" });
   const todayLabel = language === "tr" ? "Bugun" : "Today";
+  const orbFloat = useRef(new Animated.Value(0)).current;
 
   const displayName = user.name || t("profile.defaultUser");
   const photoUri = user.photo || DEFAULT_AVATAR;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(orbFloat, {
+          toValue: 1,
+          duration: 3400,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(orbFloat, {
+          toValue: 0,
+          duration: 3400,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    loop.start();
+
+    return () => {
+      loop.stop();
+    };
+  }, [orbFloat]);
+
+  const orbLargeTranslateY = orbFloat.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-3, 6],
+  });
+
+  const orbLargeScale = orbFloat.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.96, 1.06],
+  });
+
+  const orbSmallTranslateY = orbFloat.interpolate({
+    inputRange: [0, 1],
+    outputRange: [4, -5],
+  });
 
   return (
     <LinearGradient
@@ -49,8 +90,20 @@ const AppBar = () => {
       end={{ x: 1, y: 1 }}
       style={styles.headerCard}
     >
-      <View style={[styles.headerOrbLarge, { backgroundColor: `${colors.surface}22` }]} />
-      <View style={[styles.headerOrbSmall, { backgroundColor: `${colors.surface}2E` }]} />
+      <Animated.View
+        style={[
+          styles.headerOrbLarge,
+          { backgroundColor: `${colors.surface}22` },
+          { transform: [{ translateY: orbLargeTranslateY }, { scale: orbLargeScale }] },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.headerOrbSmall,
+          { backgroundColor: `${colors.surface}2E` },
+          { transform: [{ translateY: orbSmallTranslateY }] },
+        ]}
+      />
 
       <View style={styles.headerContent}>
         <View

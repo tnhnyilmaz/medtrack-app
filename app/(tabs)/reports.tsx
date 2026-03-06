@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Animated, Easing, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../src/contexts/ThemeContext";
 
@@ -10,6 +10,8 @@ export default function ReportsScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const { t } = useTranslation();
+  const revealAnim = useRef(new Animated.Value(0)).current;
+  const cardScales = useRef([new Animated.Value(1), new Animated.Value(1)]).current;
 
   const reportCards = [
     {
@@ -28,6 +30,25 @@ export default function ReportsScreen() {
     },
   ];
 
+  useEffect(() => {
+    revealAnim.setValue(0);
+    Animated.timing(revealAnim, {
+      toValue: 1,
+      duration: 520,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [revealAnim, t]);
+
+  const animateCardScale = (index: number, toValue: number) => {
+    Animated.spring(cardScales[index], {
+      toValue,
+      speed: 24,
+      bounciness: 4,
+      useNativeDriver: true,
+    }).start();
+  };
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
@@ -42,36 +63,58 @@ export default function ReportsScreen() {
 
       <View style={styles.cardsContainer}>
         {reportCards.map((card, index) => (
-          <TouchableOpacity
+          <Animated.View
             key={index}
-            style={[styles.card, { backgroundColor: colors.card }]}
-            onPress={() => router.push(card.route as any)}
-            activeOpacity={0.7}
+            style={{
+              opacity: revealAnim.interpolate({
+                inputRange: [index * 0.25, 0.7 + index * 0.25],
+                outputRange: [0, 1],
+                extrapolate: "clamp",
+              }),
+              transform: [
+                {
+                  translateY: revealAnim.interpolate({
+                    inputRange: [index * 0.25, 0.7 + index * 0.25],
+                    outputRange: [14, 0],
+                    extrapolate: "clamp",
+                  }),
+                },
+                { scale: cardScales[index] },
+              ],
+            }}
           >
-            <View
-              style={[
-                styles.iconContainer,
-                { backgroundColor: card.color + "20" },
-              ]}
+            <TouchableOpacity
+              style={[styles.card, { backgroundColor: colors.card }]}
+              onPress={() => router.push(card.route as any)}
+              onPressIn={() => animateCardScale(index, 0.97)}
+              onPressOut={() => animateCardScale(index, 1)}
+              activeOpacity={0.85}
             >
-              <Ionicons name={card.icon} size={32} color={card.color} />
-            </View>
-            <View style={styles.cardContent}>
-              <Text style={[styles.cardTitle, { color: colors.text }]}>
-                {card.title}
-              </Text>
-              <Text
-                style={[styles.cardSubtitle, { color: colors.textSecondary }]}
+              <View
+                style={[
+                  styles.iconContainer,
+                  { backgroundColor: card.color + "20" },
+                ]}
               >
-                {card.subtitle}
-              </Text>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={24}
-              color={colors.textSecondary}
-            />
-          </TouchableOpacity>
+                <Ionicons name={card.icon} size={32} color={card.color} />
+              </View>
+              <View style={styles.cardContent}>
+                <Text style={[styles.cardTitle, { color: colors.text }]}>
+                  {card.title}
+                </Text>
+                <Text
+                  style={[styles.cardSubtitle, { color: colors.textSecondary }]}
+                >
+                  {card.subtitle}
+                </Text>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={24}
+                color={colors.textSecondary}
+              />
+            </TouchableOpacity>
+          </Animated.View>
         ))}
       </View>
     </SafeAreaView>

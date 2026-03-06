@@ -1,5 +1,6 @@
 import { useTheme } from "@/src/contexts/ThemeContext";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Text, TouchableOpacity, View } from "react-native";
 
 const MedClock = ({ timeInputs, openTimePicker }: {
@@ -7,6 +8,7 @@ const MedClock = ({ timeInputs, openTimePicker }: {
   openTimePicker: (index: number) => void;
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <View>

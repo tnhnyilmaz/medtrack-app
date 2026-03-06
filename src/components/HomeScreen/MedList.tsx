@@ -7,10 +7,12 @@ import {
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
   Modal,
   StyleSheet,
   Text,
@@ -26,6 +28,9 @@ const MedList = () => {
   const [loading, setLoading] = useState(true);
   const [selectedMed, setSelectedMed] = useState<TodayMedication | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const listReveal = useRef(new Animated.Value(0)).current;
+  const modalScale = useRef(new Animated.Value(0.92)).current;
+  const modalOpacity = useRef(new Animated.Value(0)).current;
 
   const loadMedications = useCallback(async () => {
     try {
@@ -44,6 +49,63 @@ const MedList = () => {
       loadMedications();
     }, [loadMedications])
   );
+
+  useEffect(() => {
+    if (loading) return;
+
+    listReveal.setValue(0);
+    Animated.timing(listReveal, {
+      toValue: 1,
+      duration: 520,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [listReveal, loading, medications.length]);
+
+  useEffect(() => {
+    if (!modalVisible) return;
+
+    modalOpacity.setValue(0);
+    modalScale.setValue(0.92);
+
+    Animated.parallel([
+      Animated.timing(modalOpacity, {
+        toValue: 1,
+        duration: 180,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.spring(modalScale, {
+        toValue: 1,
+        speed: 18,
+        bounciness: 6,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [modalOpacity, modalScale, modalVisible]);
+
+  const getItemAnimatedStyle = (index: number) => {
+    const start = Math.min(index * 0.12, 0.78);
+    const end = Math.min(start + 0.28, 1);
+    const safeEnd = end <= start ? start + 0.01 : end;
+
+    return {
+      opacity: listReveal.interpolate({
+        inputRange: [start, safeEnd],
+        outputRange: [0, 1],
+        extrapolate: "clamp",
+      }),
+      transform: [
+        {
+          translateY: listReveal.interpolate({
+            inputRange: [start, safeEnd],
+            outputRange: [10, 0],
+            extrapolate: "clamp",
+          }),
+        },
+      ],
+    };
+  };
 
   const handleMedicationPress = (med: TodayMedication) => {
     setSelectedMed(med);
@@ -97,7 +159,13 @@ const MedList = () => {
     const isMissed = selectedMed.status === "missed";
 
     return (
-      <View style={[styles.modalContent, { backgroundColor: colors.surface }]}> 
+      <Animated.View
+        style={[
+          styles.modalContent,
+          { backgroundColor: colors.surface },
+          { opacity: modalOpacity, transform: [{ scale: modalScale }] },
+        ]}
+      >
         <View style={styles.modalHeader}>
           <View
             style={[
@@ -114,25 +182,25 @@ const MedList = () => {
           <Text style={[styles.modalTitle, { color: colors.text }]}>
             {selectedMed.name}
           </Text>
-          <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}> 
-            {selectedMed.dosage && `${selectedMed.dosage} • `}
+          <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
+            {selectedMed.dosage && `${selectedMed.dosage} | `}
             {selectedMed.schedule_time}
           </Text>
         </View>
 
         {isMissed && (
-          <View style={[styles.warningBox, { backgroundColor: "#FEE2E2" }]}> 
+          <View style={[styles.warningBox, { backgroundColor: "#FEE2E2" }]}>
             <Ionicons name="warning" size={20} color="#EF4444" />
-            <Text style={[styles.warningText, { color: "#EF4444" }]}> 
+            <Text style={[styles.warningText, { color: "#EF4444" }]}>
               {t("home.lateWarning")}
             </Text>
           </View>
         )}
 
         {selectedMed.status === "taken_late" && (
-          <View style={[styles.warningBox, { backgroundColor: "#FFF3E0" }]}> 
+          <View style={[styles.warningBox, { backgroundColor: "#FFF3E0" }]}>
             <Ionicons name="time" size={20} color="#FF9800" />
-            <Text style={[styles.warningText, { color: "#FF9800" }]}> 
+            <Text style={[styles.warningText, { color: "#FF9800" }]}>
               {t("home.takenLateAt").replace(
                 "{time}",
                 selectedMed.taken_time || ""
@@ -142,9 +210,9 @@ const MedList = () => {
         )}
 
         {isTaken && selectedMed.status !== "taken_late" && (
-          <View style={[styles.warningBox, { backgroundColor: "#DCFCE7" }]}> 
+          <View style={[styles.warningBox, { backgroundColor: "#DCFCE7" }]}>
             <Ionicons name="checkmark-circle" size={20} color="#22C55E" />
-            <Text style={[styles.warningText, { color: "#22C55E" }]}> 
+            <Text style={[styles.warningText, { color: "#22C55E" }]}>
               {t("home.takenAt").replace("{time}", selectedMed.taken_time || "")}
             </Text>
           </View>
@@ -177,12 +245,12 @@ const MedList = () => {
             style={[styles.cancelButton, { borderColor: colors.textSecondary }]}
             onPress={closeModal}
           >
-            <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}> 
+            <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>
               {t("home.close")}
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </Animated.View>
     );
   };
 
@@ -198,10 +266,10 @@ const MedList = () => {
     if (medications.length === 0) {
       return (
         <View style={styles.emptyContainer}>
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}> 
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
             {t("home.noMedicationsScheduled")}
           </Text>
-          <Text style={[styles.emptySubText, { color: colors.textSecondary }]}> 
+          <Text style={[styles.emptySubText, { color: colors.textSecondary }]}>
             {t("home.tapPlusToAdd")}
           </Text>
         </View>
@@ -211,12 +279,15 @@ const MedList = () => {
     return (
       <>
         {medications.map((med, index) => (
-          <View key={`${med.medicine_id}-${med.schedule_time}`}>
+          <Animated.View
+            key={`${med.medicine_id}-${med.schedule_time}`}
+            style={getItemAnimatedStyle(index)}
+          >
             <MedTile med={med} onPress={() => handleMedicationPress(med)} />
             {index < medications.length - 1 && (
               <View style={[styles.divider, { backgroundColor: colors.divider }]} />
             )}
-          </View>
+          </Animated.View>
         ))}
       </>
     );
@@ -234,7 +305,7 @@ const MedList = () => {
           onPress={() => router.push("/medicationsScreen")}
           style={[styles.seeAllChip, { backgroundColor: `${colors.primary}12` }]}
         >
-          <Text style={[styles.seeAllText, { color: colors.primary }]}> 
+          <Text style={[styles.seeAllText, { color: colors.primary }]}>
             {t("home.allMedications")}
           </Text>
           <Ionicons name="chevron-forward" size={14} color={colors.primary} />

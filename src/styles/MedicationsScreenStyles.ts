@@ -1,33 +1,161 @@
 import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
-    roundAddBtn: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    bigText: {
-        fontSize: 28,
-        fontWeight: 'bold'
-    },
-    searchBarContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        borderRadius: 10,
-        paddingHorizontal: 15,
-        paddingVertical: 12,
-        marginVertical: 15,
-        height: 60,
-    },
-    inputText: {
-        flex: 1,
-        marginLeft: 10,
-        fontSize: 16,
-        color: "#333",
-        fontStyle:"italic",
-        alignItems:"center"
-        
-    }
-})
+  screenContainer: {
+    flex: 1,
+  },
+  ambientLayer: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  ambientCircleTop: {
+    position: "absolute",
+    top: -100,
+    right: -80,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+  },
+  ambientCircleBottom: {
+    position: "absolute",
+    bottom: 70,
+    left: -110,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 18,
+    paddingTop: 12,
+  },
+  appBarContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14,
+  },
+  appBarLeft: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  bigText: {
+    fontSize: 31,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+  },
+  appBarSubText: {
+    marginTop: 4,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  roundAddBtnShadow: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 14,
+    elevation: 6,
+    overflow: "hidden",
+  },
+  roundAddBtn: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 16,
+  },
+  statsRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 14,
+  },
+  statCard: {
+    flex: 1,
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+  },
+  statLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
+  },
+  statValue: {
+    marginTop: 4,
+    fontSize: 18,
+    fontWeight: "800",
+    letterSpacing: -0.2,
+  },
+  searchBarContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    height: 56,
+    borderWidth: 1,
+    marginBottom: 14,
+  },
+  searchIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 9,
+  },
+  inputText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "500",
+  },
+  clearButton: {
+    width: 28,
+    height: 28,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  listContent: {
+    paddingBottom: 34,
+    gap: 10,
+  },
+  emptyState: {
+    marginTop: 30,
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingVertical: 26,
+    paddingHorizontal: 18,
+    alignItems: "center",
+    gap: 10,
+  },
+  emptyStateIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyStateTitle: {
+    fontSize: 17,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+  emptyStateSubtitle: {
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: "center",
+  },
+  emptyActionBtn: {
+    marginTop: 6,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  emptyActionText: {
+    fontSize: 13,
+    fontWeight: "700",
+  },
+});
