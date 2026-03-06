@@ -1,4 +1,5 @@
 import { useFocusEffect } from "@react-navigation/native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -229,14 +230,22 @@ const SugarMeasurementsScreen = ({
           label: shouldRenderLabel
             ? formatChartLabel(item.measureTime, activeTab, locale)
             : "",
-          dataPointText: item.level.toString(),
         };
       }),
     [activeTab, chronologicalData, locale, visibleLabelEvery]
   );
 
   const chartSpacing =
-    chronologicalData.length <= 6 ? 44 : chronologicalData.length <= 12 ? 30 : 22;
+    chronologicalData.length <= 6 ? 42 : chronologicalData.length <= 12 ? 28 : 20;
+
+  const chartMaxValue = useMemo(() => {
+    if (chronologicalData.length === 0) {
+      return 220;
+    }
+
+    const peakValue = Math.max(...chronologicalData.map((item) => item.level));
+    return Math.max(160, Math.ceil((peakValue + 15) / 10) * 10);
+  }, [chronologicalData]);
 
   const summary = useMemo(() => {
     if (sugarMeasurements.length === 0) {
@@ -277,7 +286,22 @@ const SugarMeasurementsScreen = ({
   }, [chronologicalData, sugarMeasurements]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <View style={styles.ambientLayer} pointerEvents="none">
+        <View
+          style={[
+            styles.ambientCircleTop,
+            { backgroundColor: `${colors.primary}16` },
+          ]}
+        />
+        <View
+          style={[
+            styles.ambientCircleBottom,
+            { backgroundColor: `${colors.measurIconORange}14` },
+          ]}
+        />
+      </View>
+
       <View style={styles.container}>
         <TopBar />
         <PeriodTabs activeTab={activeTab} onTabChange={setActiveTab} />
@@ -286,121 +310,159 @@ const SugarMeasurementsScreen = ({
           <DateSelection date={selectedDate} onDateChange={setSelectedDate} />
         )}
 
-        <View style={{ height: 250, paddingVertical: 10, paddingHorizontal: 0 }}>
-          {sugarMeasurements.length > 0 ? (
-            <LineChart
-              data={chartDataSugar}
-              height={200}
-              spacing={chartSpacing}
-              initialSpacing={20}
-              color={colors.measurIconORange || "orange"}
-              textColor={colors.measurIconORange || "orange"}
-              dataPointsHeight={6}
-              dataPointsWidth={6}
-              dataPointsColor={colors.measurIconORange || "orange"}
-              textShiftY={-2}
-              textShiftX={-5}
-              textFontSize={11}
-              thickness={2}
-              yAxisTextStyle={{ color: colors.textSecondary }}
-              xAxisLabelTextStyle={{
-                color: colors.textSecondary,
-                fontSize: 10,
-              }}
-              yAxisThickness={0}
-              xAxisThickness={1}
-              xAxisColor={colors.border}
-              rulesType="solid"
-              rulesColor={colors.border ? colors.border + "40" : "#E0E0E0"}
-              curved
-              startFillColor={colors.measurIconORange}
-              endFillColor={colors.measurIconORange}
-              startOpacity={0.2}
-              endOpacity={0}
-              areaChart
-            />
-          ) : (
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <Text style={{ color: colors.textSecondary }}>
-                {loading ? "" : t("sugar.noDataInChart")}
-              </Text>
-            </View>
-          )}
+        <View
+          style={[
+            styles.chartCard,
+            {
+              backgroundColor: colors.surface,
+              borderColor: `${colors.border}CC`,
+              shadowColor: colors.shadow,
+            },
+          ]}
+        >
+          <View style={styles.chartArea}>
+            {sugarMeasurements.length > 0 ? (
+              <LineChart
+                data={chartDataSugar}
+                height={200}
+                showVerticalLines
+                verticalLinesColor={colors.border ? `${colors.border}32` : "#D6D6D6"}
+                verticalLinesStrokeDashArray={[4, 4]}
+                verticalLinesThickness={1}
+                verticalLinesUptoDataPoint
+                spacing={chartSpacing}
+                initialSpacing={14}
+                endSpacing={16}
+                color={colors.measurIconORange || "orange"}
+                textColor={colors.measurIconORange || "orange"}
+                dataPointsHeight={7}
+                dataPointsWidth={7}
+                dataPointsRadius={4}
+                dataPointsColor={colors.measurIconORange || "orange"}
+                focusEnabled
+                showDataPointOnFocus
+                showStripOnFocus
+                showTextOnFocus={false}
+                stripWidth={1}
+                stripColor={colors.border ? `${colors.border}80` : "#9CA3AF80"}
+                textShiftY={-2}
+                textShiftX={-5}
+                textFontSize={11}
+                thickness={3}
+                yAxisTextStyle={{
+                  color: colors.textSecondary,
+                  fontSize: 11,
+                  fontWeight: "600",
+                }}
+                xAxisLabelTextStyle={{
+                  color: colors.textSecondary,
+                  fontSize: 10,
+                  fontWeight: "600",
+                }}
+                maxValue={chartMaxValue}
+                noOfSections={5}
+                yAxisThickness={0}
+                xAxisThickness={1}
+                xAxisColor={colors.border}
+                rulesType="solid"
+                rulesColor={colors.border ? colors.border + "40" : "#E0E0E0"}
+                rulesThickness={1}
+                curved
+                adjustToWidth
+                isAnimated
+                animateOnDataChange
+                animationDuration={700}
+                onDataChangeAnimationDuration={550}
+                lineGradient
+                lineGradientDirection="vertical"
+                lineGradientStartColor={colors.measurIconORange || "#F59E0B"}
+                lineGradientEndColor={colors.primary || "#22C55E"}
+                startFillColor={colors.measurIconORange || "orange"}
+                endFillColor={colors.measurIconORange || "orange"}
+                startOpacity={0.26}
+                endOpacity={0}
+                areaChart
+              />
+            ) : (
+              <View style={styles.emptyChartWrap}>
+                <Text style={[styles.emptyChartText, { color: colors.textSecondary }]}>
+                  {loading ? "" : t("sugar.noDataInChart")}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
 
         {summary && (
-          <View style={{ marginBottom: 10, gap: 8 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <View
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: 5,
-                  backgroundColor: colors.measurIconORange || "orange",
-                }}
-              />
-              <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
-                {t("sugar.legendLevel")}
-              </Text>
+          <View style={styles.summaryWrap}>
+            <View style={styles.summaryLegendRow}>
+              <View style={styles.summaryLegendItem}>
+                <View
+                  style={[
+                    styles.legendDot,
+                    { backgroundColor: colors.measurIconORange || "orange" },
+                  ]}
+                />
+                <Text style={[styles.legendText, { color: colors.textSecondary }]}>
+                  {t("sugar.legendLevel")}
+                </Text>
+              </View>
             </View>
 
-            <View style={{ flexDirection: "row", gap: 8 }}>
+            <View style={styles.summaryCardsRow}>
               <View
-                style={{
-                  flex: 1,
-                  backgroundColor: colors.surface,
-                  borderRadius: 10,
-                  padding: 10,
-                }}
+                style={[
+                  styles.summaryCard,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: `${colors.border}CC`,
+                  },
+                ]}
               >
-                <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                <Text style={[styles.summaryCardLabel, { color: colors.textSecondary }]}>
                   {t("sugar.analysisAverage")}
                 </Text>
-                <Text style={{ color: colors.text, fontWeight: "700", marginTop: 4 }}>
+                <Text style={[styles.summaryCardValue, { color: colors.text }]}>
                   {summary.avg} mg/dL
                 </Text>
               </View>
 
               <View
-                style={{
-                  flex: 1,
-                  backgroundColor: colors.surface,
-                  borderRadius: 10,
-                  padding: 10,
-                }}
+                style={[
+                  styles.summaryCard,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: `${colors.border}CC`,
+                  },
+                ]}
               >
-                <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                <Text style={[styles.summaryCardLabel, { color: colors.textSecondary }]}>
                   {t("sugar.analysisRange")}
                 </Text>
-                <Text style={{ color: colors.text, fontWeight: "700", marginTop: 4 }}>
+                <Text style={[styles.summaryCardValue, { color: colors.text }]}>
                   {summary.min} - {summary.max}
                 </Text>
               </View>
 
               <View
-                style={{
-                  flex: 1,
-                  backgroundColor: colors.surface,
-                  borderRadius: 10,
-                  padding: 10,
-                }}
+                style={[
+                  styles.summaryCard,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: `${colors.border}CC`,
+                  },
+                ]}
               >
-                <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                <Text style={[styles.summaryCardLabel, { color: colors.textSecondary }]}>
                   {t("sugar.analysisNormalRate")}
                 </Text>
-                <Text style={{ color: colors.text, fontWeight: "700", marginTop: 4 }}>
+                <Text style={[styles.summaryCardValue, { color: colors.text }]}>
                   %{summary.normalRate}
                 </Text>
               </View>
             </View>
 
-            <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+            <Text style={[styles.trendText, { color: colors.textSecondary }]}>
               {t(`sugar.trend.${summary.trendKey}`, {
                 delta: Math.abs(summary.trendDelta),
                 count: summary.count,
@@ -410,7 +472,7 @@ const SugarMeasurementsScreen = ({
         )}
 
         {loading ? (
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <View style={styles.loadingWrap}>
             <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : (
@@ -418,18 +480,19 @@ const SugarMeasurementsScreen = ({
             data={sugarMeasurements}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => <SugarCard data={item} />}
-            contentContainerStyle={{ paddingBottom: 20 }}
+            contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
               <View
-                style={{
-                  flex: 1,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  paddingTop: 40,
-                }}
+                style={[
+                  styles.listEmptyWrap,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: `${colors.border}CC`,
+                  },
+                ]}
               >
-                <Text style={{ color: colors.textSecondary }}>
+                <Text style={[styles.listEmptyText, { color: colors.textSecondary }]}>
                   {t("sugar.noMeasurementsInPeriod")}
                 </Text>
               </View>
@@ -438,8 +501,17 @@ const SugarMeasurementsScreen = ({
         )}
       </View>
 
-      <TouchableOpacity style={{ padding: 15 }} onPress={() => setModalVisible(true)}>
-        <View style={[styles.addBtn, { backgroundColor: colors.iconGreen }]}>
+      <TouchableOpacity style={styles.addButtonWrap} onPress={() => setModalVisible(true)}>
+        <View
+          style={[
+            styles.addBtn,
+            {
+              backgroundColor: colors.iconGreen,
+              shadowColor: colors.shadow,
+            },
+          ]}
+        >
+          <Ionicons name="add-circle-outline" size={19} color="#fff" />
           <Text style={[styles.addBtnText, { color: "#fff" }]}>
             {t("sugar.addButton")}
           </Text>

@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
 import { PeriodType } from "../../database/measurementRepository";
 
@@ -26,36 +26,33 @@ const PeriodTabs = ({
 
   return (
     <View
-      style={{
-        backgroundColor: colors.surface,
-        marginTop: 20,
-        marginBottom: 10,
-        borderRadius: 20,
-        padding: 5,
-      }}
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.surface,
+          borderColor: `${colors.border}CC`,
+          shadowColor: colors.shadow,
+        },
+      ]}
     >
-      <View
-        style={{
-          flexDirection: "row",
-          gap: 5,
-          justifyContent: "space-around",
-          paddingHorizontal: 5,
-          paddingVertical: 5,
-        }}
-      >
+      <View style={styles.row}>
         {tabs.map((tab) => (
-          <Pressable key={tab} onPress={() => onTabChange(tab)} style={{ flex: 1 }}>
+          <Pressable
+            key={tab}
+            onPress={() => onTabChange(tab)}
+            style={[
+              styles.tabButton,
+              activeTab === tab && {
+                backgroundColor: `${colors.secondary}1F`,
+                borderColor: `${colors.secondary}66`,
+              },
+            ]}
+          >
             <Text
-              style={{
-                textAlign: "center",
-                fontSize: 13,
-                fontWeight: "bold",
-                padding: 6,
-                borderRadius: 12,
-                ...(activeTab === tab
-                  ? { backgroundColor: colors.success, color: "#fff" }
-                  : { color: colors.textSecondary }),
-              }}
+              style={[
+                styles.tabText,
+                { color: activeTab === tab ? colors.iconGreen : colors.textSecondary },
+              ]}
             >
               {getTabLabel(tab)}
             </Text>
@@ -65,5 +62,38 @@ const PeriodTabs = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    marginTop: 14,
+    marginBottom: 12,
+    borderRadius: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  row: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  tabButton: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "transparent",
+    paddingVertical: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tabText: {
+    textAlign: "center",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+});
 
 export default PeriodTabs;

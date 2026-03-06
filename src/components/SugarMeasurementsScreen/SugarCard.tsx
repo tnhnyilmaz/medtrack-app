@@ -74,19 +74,13 @@ const SugarCard = ({ data }: { data: SugarDataProps }) => {
         styles.sugarCard,
         {
           backgroundColor: colors.surface,
-          flexDirection: "column",
-          alignItems: "stretch",
+          borderColor: `${colors.border}B8`,
+          shadowColor: colors.shadow,
         },
       ]}
     >
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 15 }}>
+      <View style={styles.cardTopRow}>
+        <View style={styles.cardLeft}>
           <View
             style={[
               styles.iconContainer,
@@ -100,24 +94,15 @@ const SugarCard = ({ data }: { data: SugarDataProps }) => {
             <Text style={[styles.sugarText, { color: colors.text }]}>
               {data.level} mg/dL
             </Text>
-            <View style={[styles.row, { gap: 10, flexWrap: "wrap" }]}>
-              <Text style={{ color: colors.textSecondary || "gray" }}>
+            <View style={styles.cardMetaRow}>
+              <Text style={[styles.cardMetaText, { color: colors.textSecondary }]}>
                 {data.time} - {getTypeLabel(data.type)}
               </Text>
               <View
-                style={{
-                  backgroundColor: statusStyle.backgroundColor,
-                  paddingHorizontal: 8,
-                  paddingVertical: 2,
-                  borderRadius: 6,
-                }}
+                style={[styles.statusPill, { backgroundColor: statusStyle.backgroundColor }]}
               >
                 <Text
-                  style={{
-                    color: statusStyle.color,
-                    fontWeight: "600",
-                    fontSize: 12,
-                  }}
+                  style={[styles.statusText, { color: statusStyle.color }]}
                 >
                   {getStatusLabel(data.status)}
                 </Text>
@@ -126,28 +111,26 @@ const SugarCard = ({ data }: { data: SugarDataProps }) => {
           </View>
         </View>
 
-        <Pressable onPress={() => setExpanded((previous) => !previous)} style={{ padding: 5 }}>
+        <Pressable
+          onPress={() => setExpanded((previous) => !previous)}
+          style={[styles.expandButton, { backgroundColor: `${colors.primary}12` }]}
+        >
           <Entypo
             name={expanded ? "chevron-small-up" : "chevron-small-down"}
-            size={24}
-            color={colors.text}
+            size={22}
+            color={colors.primary}
           />
         </Pressable>
       </View>
 
       {expanded && (
         <View
-          style={{
-            marginTop: 10,
-            paddingTop: 10,
-            borderTopWidth: 1,
-            borderTopColor: colors.border || "#eee",
-          }}
+          style={[styles.detailWrap, { borderTopColor: colors.border }]}
         >
-          <Text style={{ fontWeight: "bold", color: colors.text, marginBottom: 2 }}>
+          <Text style={[styles.detailLabel, { color: colors.text }]}>
             {t("sugar.note")}
           </Text>
-          <Text style={{ color: colors.textSecondary || "gray", fontStyle: "italic" }}>
+          <Text style={[styles.detailText, { color: colors.textSecondary }]}>
             {data.note || t("sugar.noNote")}
           </Text>
         </View>

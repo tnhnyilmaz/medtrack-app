@@ -10,12 +10,14 @@ import {
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../contexts/ThemeContext";
 
 interface BloodPressureFormData {
@@ -39,6 +41,7 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
 }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const [measurementTime, setMeasurementTime] = useState<"now" | "custom">(
     "now"
   );
@@ -170,214 +173,301 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
       transparent
       visible={visible}
       onRequestClose={closeModal}
+      statusBarTranslucent
     >
-      <TouchableWithoutFeedback onPress={closeModal}>
-        <View style={localStyles.overlay}>
+      <View style={localStyles.overlay}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={closeModal} />
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 12 : 0}
+          style={localStyles.keyboardAvoidingView}
+        >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : "height"}
-              style={localStyles.keyboardAvoidingView}
+            <View
+              style={[
+                localStyles.modalContainer,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: `${colors.border}A8`,
+                },
+              ]}
             >
               <View
                 style={[
-                  localStyles.modalContainer,
-                  { backgroundColor: colors.surface },
+                  localStyles.sheetHandle,
+                  { backgroundColor: `${colors.textSecondary}4A` },
                 ]}
-              >
-                <View style={localStyles.header}>
-                  <Pressable onPress={closeModal} style={localStyles.closeButton}>
-                    <AntDesign name="close" size={24} color={colors.text} />
-                  </Pressable>
+              />
+
+              <View style={localStyles.header}>
+                <View style={localStyles.titleWrap}>
                   <Text style={[localStyles.title, { color: colors.text }]}>
                     {t("bloodPressure.addTitle")}
                   </Text>
-                  <View style={{ width: 24 }} />
+                  <Text style={[localStyles.subtitle, { color: colors.textSecondary }]}>
+                    {t("bloodPressure.measurementTime")}
+                  </Text>
                 </View>
-
-                <Text style={[localStyles.label, { color: colors.textSecondary }]}>
-                  {t("bloodPressure.measurementTime")}
-                </Text>
-                <View
+                <Pressable
+                  onPress={closeModal}
                   style={[
-                    localStyles.toggleContainer,
-                    { backgroundColor: colors.background },
+                    localStyles.closeButton,
+                    {
+                      backgroundColor: colors.background,
+                      borderColor: `${colors.border}A8`,
+                    },
                   ]}
                 >
-                  <Pressable
-                    style={[
-                      localStyles.toggleButton,
-                      measurementTime === "now" && {
-                        backgroundColor: colors.surface,
-                        shadowColor: "#000",
-                        shadowOpacity: 0.1,
-                        shadowRadius: 2,
-                        elevation: 2,
-                      },
-                    ]}
-                    onPress={() => setMeasurementTime("now")}
-                  >
-                    <Text
-                      style={{
-                        color:
-                          measurementTime === "now"
-                            ? colors.text
-                            : colors.textSecondary,
-                      }}
-                    >
-                      {t("bloodPressure.now")}
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    style={[
-                      localStyles.toggleButton,
-                      measurementTime === "custom" && {
-                        backgroundColor: colors.surface,
-                        shadowColor: "#000",
-                        shadowOpacity: 0.1,
-                        shadowRadius: 2,
-                        elevation: 2,
-                      },
-                    ]}
-                    onPress={() => setMeasurementTime("custom")}
-                  >
-                    <Text
-                      style={{
-                        color:
-                          measurementTime === "custom"
-                            ? colors.text
-                            : colors.textSecondary,
-                      }}
-                    >
-                      {t("bloodPressure.custom")}
-                    </Text>
-                  </Pressable>
-                </View>
+                  <AntDesign name="close" size={20} color={colors.text} />
+                </Pressable>
+              </View>
 
-                {measurementTime === "custom" && (
-                  <View style={localStyles.customTimeContainer}>
-                    <Pressable
-                      onPress={() => setPickerMode("date")}
-                      style={[
-                        localStyles.customTimeButton,
-                        { borderColor: colors.border, backgroundColor: colors.background },
-                      ]}
-                    >
-                      <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
-                        {t("bloodPressure.customDate")}
-                      </Text>
-                      <Text style={{ color: colors.text, fontWeight: "600" }}>
-                        {formatDate(customDateTime)}
-                      </Text>
-                    </Pressable>
-
-                    <Pressable
-                      onPress={() => setPickerMode("time")}
-                      style={[
-                        localStyles.customTimeButton,
-                        { borderColor: colors.border, backgroundColor: colors.background },
-                      ]}
-                    >
-                      <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
-                        {t("bloodPressure.customHour")}
-                      </Text>
-                      <Text style={{ color: colors.text, fontWeight: "600" }}>
-                        {formatClock(customDateTime)}
-                      </Text>
-                    </Pressable>
-                  </View>
-                )}
-
-                <View style={localStyles.row}>
-                  <View style={localStyles.halfInput}>
-                    <Text style={[localStyles.label, { color: colors.textSecondary }]}>
-                      {t("bloodPressure.systolic")}
-                    </Text>
-                    <View
-                      style={[localStyles.inputWrapper, { borderColor: colors.border }]}
-                    >
-                      <TextInput
-                        style={[localStyles.input, { color: colors.text }]}
-                        placeholder="120"
-                        placeholderTextColor={colors.textSecondary}
-                        keyboardType="number-pad"
-                        value={systolic}
-                        onChangeText={setSystolic}
-                      />
-                      <Text style={{ color: colors.textSecondary, fontSize: 12 }}>mmHg</Text>
-                    </View>
-                  </View>
-
-                  <View style={localStyles.halfInput}>
-                    <Text style={[localStyles.label, { color: colors.textSecondary }]}>
-                      {t("bloodPressure.diastolic")}
-                    </Text>
-                    <View
-                      style={[localStyles.inputWrapper, { borderColor: colors.border }]}
-                    >
-                      <TextInput
-                        style={[localStyles.input, { color: colors.text }]}
-                        placeholder="80"
-                        placeholderTextColor={colors.textSecondary}
-                        keyboardType="number-pad"
-                        value={diastolic}
-                        onChangeText={setDiastolic}
-                      />
-                      <Text style={{ color: colors.textSecondary, fontSize: 12 }}>mmHg</Text>
-                    </View>
-                  </View>
-                </View>
-
-                <View style={localStyles.inputGroup}>
+              <ScrollView
+                style={localStyles.scrollView}
+                contentContainerStyle={localStyles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                <View
+                  style={[
+                    localStyles.sectionCard,
+                    {
+                      backgroundColor: colors.background,
+                      borderColor: `${colors.border}AA`,
+                    },
+                  ]}
+                >
                   <Text style={[localStyles.label, { color: colors.textSecondary }]}>
-                    {t("bloodPressure.pulse")}
+                    {t("bloodPressure.measurementTime")}
                   </Text>
-                  <View
-                    style={[localStyles.inputWrapper, { borderColor: colors.border }]}
-                  >
-                    <TextInput
-                      style={[localStyles.input, { color: colors.text }]}
-                      placeholder="70"
-                      placeholderTextColor={colors.textSecondary}
-                      keyboardType="number-pad"
-                      value={pulse}
-                      onChangeText={setPulse}
-                    />
-                    <Text style={{ color: colors.textSecondary, fontSize: 12 }}>BPM</Text>
-                  </View>
-                </View>
-
-                <View style={localStyles.inputGroup}>
-                  <Text style={[localStyles.label, { color: colors.textSecondary }]}>
-                    {t("bloodPressure.note")}
-                  </Text>
-                  <View
-                    style={[
-                      localStyles.inputWrapper,
-                      {
-                        borderColor: colors.border,
-                        height: 80,
-                        alignItems: "flex-start",
-                      },
-                    ]}
-                  >
-                    <TextInput
+                  <View style={[localStyles.toggleContainer, { borderColor: `${colors.border}AA` }]}>
+                    <Pressable
                       style={[
-                        localStyles.input,
+                        localStyles.toggleButton,
                         {
-                          color: colors.text,
-                          height: "100%",
-                          textAlignVertical: "top",
+                          borderColor: `${colors.border}AA`,
+                          backgroundColor: colors.surface,
+                        },
+                        measurementTime === "now" && {
+                          backgroundColor: `${colors.primary}1A`,
+                          borderColor: `${colors.primary}66`,
                         },
                       ]}
-                      placeholder={t("bloodPressure.notePlaceholder")}
-                      placeholderTextColor={colors.textSecondary}
-                      multiline
-                      value={note}
-                      onChangeText={setNote}
-                    />
+                      onPress={() => setMeasurementTime("now")}
+                    >
+                      <Text
+                        style={[
+                          localStyles.toggleText,
+                          {
+                            color:
+                              measurementTime === "now"
+                                ? colors.primary
+                                : colors.textSecondary,
+                          },
+                        ]}
+                      >
+                        {t("bloodPressure.now")}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={[
+                        localStyles.toggleButton,
+                        {
+                          borderColor: `${colors.border}AA`,
+                          backgroundColor: colors.surface,
+                        },
+                        measurementTime === "custom" && {
+                          backgroundColor: `${colors.primary}1A`,
+                          borderColor: `${colors.primary}66`,
+                        },
+                      ]}
+                      onPress={() => setMeasurementTime("custom")}
+                    >
+                      <Text
+                        style={[
+                          localStyles.toggleText,
+                          {
+                            color:
+                              measurementTime === "custom"
+                                ? colors.primary
+                                : colors.textSecondary,
+                          },
+                        ]}
+                      >
+                        {t("bloodPressure.custom")}
+                      </Text>
+                    </Pressable>
                   </View>
+
+                  {measurementTime === "custom" && (
+                    <View style={localStyles.customTimeContainer}>
+                      <Pressable
+                        onPress={() => setPickerMode("date")}
+                        style={[
+                          localStyles.customTimeButton,
+                          { borderColor: `${colors.border}B5`, backgroundColor: colors.surface },
+                        ]}
+                      >
+                        <Text style={[localStyles.timeCaption, { color: colors.textSecondary }]}>
+                          {t("bloodPressure.customDate")}
+                        </Text>
+                        <Text style={[localStyles.timeValue, { color: colors.text }]}>
+                          {formatDate(customDateTime)}
+                        </Text>
+                      </Pressable>
+
+                      <Pressable
+                        onPress={() => setPickerMode("time")}
+                        style={[
+                          localStyles.customTimeButton,
+                          { borderColor: `${colors.border}B5`, backgroundColor: colors.surface },
+                        ]}
+                      >
+                        <Text style={[localStyles.timeCaption, { color: colors.textSecondary }]}>
+                          {t("bloodPressure.customHour")}
+                        </Text>
+                        <Text style={[localStyles.timeValue, { color: colors.text }]}>
+                          {formatClock(customDateTime)}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  )}
                 </View>
 
+                <View
+                  style={[
+                    localStyles.sectionCard,
+                    {
+                      backgroundColor: colors.background,
+                      borderColor: `${colors.border}AA`,
+                    },
+                  ]}
+                >
+                  <View style={localStyles.row}>
+                    <View style={localStyles.halfInput}>
+                      <Text style={[localStyles.label, { color: colors.textSecondary }]}>
+                        {t("bloodPressure.systolic")}
+                      </Text>
+                      <View
+                        style={[
+                          localStyles.inputWrapper,
+                          {
+                            borderColor: `${colors.border}B8`,
+                            backgroundColor: colors.surface,
+                          },
+                        ]}
+                      >
+                        <TextInput
+                          style={[localStyles.input, { color: colors.text }]}
+                          placeholder="120"
+                          placeholderTextColor={colors.textSecondary}
+                          keyboardType="number-pad"
+                          returnKeyType="done"
+                          maxLength={3}
+                          value={systolic}
+                          onChangeText={setSystolic}
+                        />
+                        <Text style={[localStyles.unitText, { color: colors.textSecondary }]}>
+                          mmHg
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={localStyles.halfInput}>
+                      <Text style={[localStyles.label, { color: colors.textSecondary }]}>
+                        {t("bloodPressure.diastolic")}
+                      </Text>
+                      <View
+                        style={[
+                          localStyles.inputWrapper,
+                          {
+                            borderColor: `${colors.border}B8`,
+                            backgroundColor: colors.surface,
+                          },
+                        ]}
+                      >
+                        <TextInput
+                          style={[localStyles.input, { color: colors.text }]}
+                          placeholder="80"
+                          placeholderTextColor={colors.textSecondary}
+                          keyboardType="number-pad"
+                          returnKeyType="done"
+                          maxLength={3}
+                          value={diastolic}
+                          onChangeText={setDiastolic}
+                        />
+                        <Text style={[localStyles.unitText, { color: colors.textSecondary }]}>
+                          mmHg
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  <View style={localStyles.inputGroup}>
+                    <Text style={[localStyles.label, { color: colors.textSecondary }]}>
+                      {t("bloodPressure.pulse")}
+                    </Text>
+                    <View
+                      style={[
+                        localStyles.inputWrapper,
+                        {
+                          borderColor: `${colors.border}B8`,
+                          backgroundColor: colors.surface,
+                        },
+                      ]}
+                    >
+                      <TextInput
+                        style={[localStyles.input, { color: colors.text }]}
+                        placeholder="70"
+                        placeholderTextColor={colors.textSecondary}
+                        keyboardType="number-pad"
+                        returnKeyType="done"
+                        maxLength={3}
+                        value={pulse}
+                        onChangeText={setPulse}
+                      />
+                      <Text style={[localStyles.unitText, { color: colors.textSecondary }]}>
+                        BPM
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={localStyles.inputGroup}>
+                    <Text style={[localStyles.label, { color: colors.textSecondary }]}>
+                      {t("bloodPressure.note")}
+                    </Text>
+                    <View
+                      style={[
+                        localStyles.noteWrapper,
+                        {
+                          borderColor: `${colors.border}B8`,
+                          backgroundColor: colors.surface,
+                        },
+                      ]}
+                    >
+                      <TextInput
+                        style={[localStyles.noteInput, { color: colors.text }]}
+                        placeholder={t("bloodPressure.notePlaceholder")}
+                        placeholderTextColor={colors.textSecondary}
+                        multiline
+                        value={note}
+                        onChangeText={setNote}
+                      />
+                    </View>
+                  </View>
+                </View>
+              </ScrollView>
+
+              <View
+                style={[
+                  localStyles.footer,
+                  {
+                    borderTopColor: `${colors.border}A8`,
+                    paddingBottom: Math.max(insets.bottom, 12),
+                  },
+                ]}
+              >
                 {validationError && (
                   <Text style={[localStyles.errorText, { color: colors.error }]}>
                     {validationError}
@@ -392,21 +482,21 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
                     {t("bloodPressure.saveMeasurement")}
                   </Text>
                 </Pressable>
-
-                {pickerMode && (
-                  <DateTimePicker
-                    value={customDateTime}
-                    mode={pickerMode}
-                    is24Hour
-                    display={Platform.OS === "ios" ? "spinner" : "default"}
-                    onChange={handlePickerChange}
-                  />
-                )}
               </View>
-            </KeyboardAvoidingView>
+
+              {pickerMode && (
+                <DateTimePicker
+                  value={customDateTime}
+                  mode={pickerMode}
+                  is24Hour
+                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  onChange={handlePickerChange}
+                />
+              )}
+            </View>
           </TouchableWithoutFeedback>
-        </View>
-      </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 };
@@ -414,101 +504,180 @@ const AddMeasurementModal: React.FC<AddMeasurementModalProps> = ({
 const localStyles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.55)",
     justifyContent: "flex-end",
   },
   keyboardAvoidingView: {
     width: "100%",
+    justifyContent: "flex-end",
   },
   modalContainer: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: 40,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderWidth: 1,
     width: "100%",
+    height: "88%",
+    maxHeight: "92%",
+    overflow: "hidden",
+  },
+  sheetHandle: {
+    alignSelf: "center",
+    width: 52,
+    height: 5,
+    borderRadius: 99,
+    marginTop: 10,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    paddingHorizontal: 18,
+    paddingTop: 12,
+    paddingBottom: 12,
   },
   closeButton: {
-    padding: 5,
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  titleWrap: {
+    flex: 1,
+    paddingRight: 10,
   },
   title: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 20,
+    fontWeight: "800",
+    letterSpacing: -0.2,
+  },
+  subtitle: {
+    marginTop: 2,
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 18,
+    paddingTop: 4,
+    paddingBottom: 12,
+    gap: 12,
+  },
+  sectionCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
   },
   label: {
     fontSize: 14,
     marginBottom: 8,
-    fontWeight: "500",
+    fontWeight: "700",
   },
   toggleContainer: {
     flexDirection: "row",
-    borderRadius: 8,
+    borderRadius: 12,
+    borderWidth: 1,
     padding: 4,
-    marginBottom: 20,
+    marginBottom: 10,
   },
   toggleButton: {
     flex: 1,
-    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingVertical: 10,
     alignItems: "center",
-    borderRadius: 6,
+  },
+  toggleText: {
+    fontSize: 13,
+    fontWeight: "700",
   },
   customTimeContainer: {
     flexDirection: "row",
-    gap: 12,
-    marginBottom: 20,
+    gap: 10,
+    marginTop: 2,
   },
   customTimeButton: {
     flex: 1,
     borderWidth: 1,
-    borderRadius: 10,
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    gap: 4,
+  },
+  timeCaption: {
+    fontSize: 11,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  timeValue: {
+    fontSize: 15,
+    fontWeight: "700",
   },
   row: {
     flexDirection: "row",
-    gap: 15,
-    marginBottom: 20,
+    gap: 10,
+    marginBottom: 10,
   },
   halfInput: {
     flex: 1,
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: 10,
   },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 14,
     paddingHorizontal: 12,
-    height: 50,
+    height: 54,
   },
   input: {
     flex: 1,
     fontSize: 16,
+    fontWeight: "700",
+    paddingVertical: 0,
+  },
+  unitText: {
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  noteWrapper: {
+    borderWidth: 1,
+    borderRadius: 14,
+    minHeight: 92,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  noteInput: {
+    fontSize: 15,
+    fontWeight: "500",
+    textAlignVertical: "top",
+    minHeight: 74,
+  },
+  footer: {
+    borderTopWidth: 1,
+    paddingHorizontal: 18,
+    paddingTop: 10,
   },
   errorText: {
-    marginTop: -4,
-    marginBottom: 10,
+    marginBottom: 8,
     fontSize: 13,
-    fontWeight: "500",
+    fontWeight: "600",
   },
   saveButton: {
-    borderRadius: 12,
-    paddingVertical: 16,
+    borderRadius: 14,
+    paddingVertical: 15,
     alignItems: "center",
-    marginTop: 4,
   },
   saveButtonText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 15,
+    fontWeight: "800",
+    letterSpacing: 0.2,
   },
 });
 

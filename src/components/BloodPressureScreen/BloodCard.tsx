@@ -69,19 +69,13 @@ const BloodCard = ({ data }: { data: BloodDataProps }) => {
         styles.bloodCard,
         {
           backgroundColor: colors.surface,
-          flexDirection: "column",
-          alignItems: "stretch",
+          borderColor: `${colors.border}B8`,
+          shadowColor: colors.shadow,
         },
       ]}
     >
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 15 }}>
+      <View style={styles.cardTopRow}>
+        <View style={styles.cardLeft}>
           <View
             style={[
               styles.iconContainer,
@@ -95,22 +89,15 @@ const BloodCard = ({ data }: { data: BloodDataProps }) => {
             <Text style={[styles.bloodText, { color: colors.text }]}>
               {data.systolic}/{data.diastolic} mmHg
             </Text>
-            <View style={[styles.row, { gap: 10, flexWrap: "wrap" }]}>
-              <Text style={{ color: colors.textSecondary || "gray" }}>{data.time}</Text>
+            <View style={styles.cardMetaRow}>
+              <Text style={[styles.cardMetaText, { color: colors.textSecondary }]}>
+                {data.time}
+              </Text>
               <View
-                style={{
-                  backgroundColor: statusStyle.backgroundColor,
-                  paddingHorizontal: 8,
-                  paddingVertical: 2,
-                  borderRadius: 6,
-                }}
+                style={[styles.statusPill, { backgroundColor: statusStyle.backgroundColor }]}
               >
                 <Text
-                  style={{
-                    color: statusStyle.color,
-                    fontWeight: "600",
-                    fontSize: 12,
-                  }}
+                  style={[styles.statusText, { color: statusStyle.color }]}
                 >
                   {getStatusLabel(data.status)}
                 </Text>
@@ -119,33 +106,32 @@ const BloodCard = ({ data }: { data: BloodDataProps }) => {
           </View>
         </View>
 
-        <Pressable onPress={() => setExpanded((previous) => !previous)} style={{ padding: 5 }}>
+        <Pressable
+          onPress={() => setExpanded((previous) => !previous)}
+          style={[styles.expandButton, { backgroundColor: `${colors.primary}12` }]}
+        >
           <Entypo
             name={expanded ? "chevron-small-up" : "chevron-small-down"}
-            size={24}
-            color={colors.text}
+            size={22}
+            color={colors.primary}
           />
         </Pressable>
       </View>
 
       {expanded && (
         <View
-          style={{
-            marginTop: 10,
-            paddingTop: 10,
-            borderTopWidth: 1,
-            borderTopColor: colors.border || "#eee",
-            gap: 4,
-          }}
+          style={[styles.detailWrap, { borderTopColor: colors.border }]}
         >
           {typeof data.pulse === "number" && (
-            <Text style={{ color: colors.textSecondary }}>
+            <Text style={[styles.detailText, { color: colors.textSecondary }]}>
               {t("bloodPressure.pulse")}: {data.pulse} BPM
             </Text>
           )}
 
-          <Text style={{ fontWeight: "bold", color: colors.text }}>{t("bloodPressure.note")}</Text>
-          <Text style={{ color: colors.textSecondary || "gray", fontStyle: "italic" }}>
+          <Text style={[styles.detailLabel, { color: colors.text }]}>
+            {t("bloodPressure.note")}
+          </Text>
+          <Text style={[styles.detailText, { color: colors.textSecondary }]}>
             {data.note || t("bloodPressure.noNote")}
           </Text>
         </View>

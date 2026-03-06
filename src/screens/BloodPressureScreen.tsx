@@ -1,4 +1,5 @@
 import { useFocusEffect } from "@react-navigation/native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -215,7 +216,6 @@ const BloodPressureScreen = ({
           label: shouldRenderLabel
             ? formatChartLabel(item.measureTime, activeTab, locale)
             : "",
-          dataPointText: item.systolic.toString(),
         };
       }),
     [activeTab, chronologicalData, locale, visibleLabelEvery]
@@ -225,13 +225,24 @@ const BloodPressureScreen = ({
     () =>
       chronologicalData.map((item) => ({
         value: item.diastolic,
-        dataPointText: item.diastolic.toString(),
       })),
     [chronologicalData]
   );
 
   const chartSpacing =
-    chronologicalData.length <= 6 ? 44 : chronologicalData.length <= 12 ? 30 : 22;
+    chronologicalData.length <= 6 ? 42 : chronologicalData.length <= 12 ? 28 : 20;
+
+  const chartMaxValue = useMemo(() => {
+    if (chronologicalData.length === 0) {
+      return 160;
+    }
+
+    const peakValue = Math.max(
+      ...chronologicalData.map((item) => Math.max(item.systolic, item.diastolic))
+    );
+
+    return Math.max(140, Math.ceil((peakValue + 12) / 10) * 10);
+  }, [chronologicalData]);
 
   const summary = useMemo(() => {
     if (bloodPressures.length === 0) {
@@ -274,7 +285,22 @@ const BloodPressureScreen = ({
   }, [bloodPressures, chronologicalData]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <View style={styles.ambientLayer} pointerEvents="none">
+        <View
+          style={[
+            styles.ambientCircleTop,
+            { backgroundColor: `${colors.primary}16` },
+          ]}
+        />
+        <View
+          style={[
+            styles.ambientCircleBottom,
+            { backgroundColor: `${colors.error}10` },
+          ]}
+        />
+      </View>
+
       <View style={styles.container}>
         <TopBar />
         <PeriodTabs activeTab={activeTab} onTabChange={setActiveTab} />
@@ -283,146 +309,179 @@ const BloodPressureScreen = ({
           <DateSelection date={selectedDate} onDateChange={setSelectedDate} />
         )}
 
-        <View style={{ height: 220, paddingVertical: 10, paddingHorizontal: 0 }}>
-          {bloodPressures.length > 0 ? (
-            <LineChart
-              data={chartDataSystolic}
-              data2={chartDataDiastolic}
-              height={170}
-              showVerticalLines
-              spacing={chartSpacing}
-              initialSpacing={20}
-              color1={colors.error || "red"}
-              color2={colors.primary || "blue"}
-              textColor1={colors.error || "red"}
-              textColor2={colors.primary || "blue"}
-              dataPointsHeight={6}
-              dataPointsWidth={6}
-              dataPointsColor1={colors.error || "red"}
-              dataPointsColor2={colors.primary || "blue"}
-              textShiftY={-2}
-              textShiftX={-5}
-              textFontSize={11}
-              thickness={2}
-              yAxisTextStyle={{ color: colors.textSecondary }}
-              xAxisLabelTextStyle={{
-                color: colors.textSecondary,
-                fontSize: 10,
-              }}
-              noOfSections={4}
-              yAxisThickness={0}
-              xAxisThickness={1}
-              xAxisColor={colors.border}
-              rulesType="solid"
-              rulesColor={colors.border ? colors.border + "40" : "#E0E0E0"}
-              curved
-              areaChart
-              startFillColor1={colors.error || "red"}
-              endFillColor1={colors.error || "red"}
-              startOpacity1={0.2}
-              endOpacity1={0}
-              startFillColor2={colors.primary || "blue"}
-              endFillColor2={colors.primary || "blue"}
-              startOpacity2={0.2}
-              endOpacity2={0}
-            />
-          ) : (
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <Text style={{ color: colors.textSecondary }}>
-                {loading ? "" : t("bloodPressure.noDataInChart")}
-              </Text>
-            </View>
-          )}
+        <View
+          style={[
+            styles.chartCard,
+            {
+              backgroundColor: colors.surface,
+              borderColor: `${colors.border}CC`,
+              shadowColor: colors.shadow,
+            },
+          ]}
+        >
+          <View style={styles.chartArea}>
+            {bloodPressures.length > 0 ? (
+              <LineChart
+                data={chartDataSystolic}
+                data2={chartDataDiastolic}
+                height={170}
+                showVerticalLines
+                verticalLinesColor={colors.border ? `${colors.border}32` : "#D6D6D6"}
+                verticalLinesStrokeDashArray={[4, 4]}
+                verticalLinesThickness={1}
+                verticalLinesUptoDataPoint
+                spacing={chartSpacing}
+                initialSpacing={14}
+                endSpacing={16}
+                color1={colors.error || "red"}
+                color2={colors.primary || "blue"}
+                textColor1={colors.error || "red"}
+                textColor2={colors.primary || "blue"}
+                dataPointsHeight1={7}
+                dataPointsWidth1={7}
+                dataPointsHeight2={7}
+                dataPointsWidth2={7}
+                dataPointsRadius1={4}
+                dataPointsRadius2={4}
+                dataPointsColor1={colors.error || "red"}
+                dataPointsColor2={colors.primary || "blue"}
+                focusEnabled
+                showDataPointOnFocus
+                showStripOnFocus
+                showTextOnFocus={false}
+                stripWidth={1}
+                stripColor={colors.border ? `${colors.border}80` : "#9CA3AF80"}
+                textShiftY={-2}
+                textShiftX={-5}
+                textFontSize={11}
+                thickness1={3}
+                thickness2={2.5}
+                strokeDashArray2={[6, 4]}
+                yAxisTextStyle={{
+                  color: colors.textSecondary,
+                  fontSize: 11,
+                  fontWeight: "600",
+                }}
+                xAxisLabelTextStyle={{
+                  color: colors.textSecondary,
+                  fontSize: 10,
+                  fontWeight: "600",
+                }}
+                maxValue={chartMaxValue}
+                noOfSections={5}
+                yAxisThickness={0}
+                xAxisThickness={1}
+                xAxisColor={colors.border}
+                rulesType="solid"
+                rulesColor={colors.border ? colors.border + "40" : "#E0E0E0"}
+                rulesThickness={1}
+                curved
+                areaChart
+                adjustToWidth
+                isAnimated
+                animateOnDataChange
+                animationDuration={700}
+                onDataChangeAnimationDuration={550}
+                startFillColor1={colors.error || "red"}
+                endFillColor1={colors.error || "red"}
+                startOpacity1={0.24}
+                endOpacity1={0}
+                startFillColor2={colors.primary || "blue"}
+                endFillColor2={colors.primary || "blue"}
+                startOpacity2={0.14}
+                endOpacity2={0}
+              />
+            ) : (
+              <View style={styles.emptyChartWrap}>
+                <Text style={[styles.emptyChartText, { color: colors.textSecondary }]}>
+                  {loading ? "" : t("bloodPressure.noDataInChart")}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
 
         {summary && (
-          <View style={{ marginBottom: 10, gap: 8 }}>
-            <View style={{ flexDirection: "row", gap: 14 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <View style={styles.summaryWrap}>
+            <View style={styles.summaryLegendRow}>
+              <View style={styles.summaryLegendItem}>
                 <View
-                  style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: 5,
-                    backgroundColor: colors.error || "red",
-                  }}
+                  style={[
+                    styles.legendDot,
+                    { backgroundColor: colors.error || "red" },
+                  ]}
                 />
-                <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                <Text style={[styles.legendText, { color: colors.textSecondary }]}>
                   {t("bloodPressure.legendSystolic")}
                 </Text>
               </View>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <View style={styles.summaryLegendItem}>
                 <View
-                  style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: 5,
-                    backgroundColor: colors.primary || "blue",
-                  }}
+                  style={[
+                    styles.legendDot,
+                    { backgroundColor: colors.primary || "blue" },
+                  ]}
                 />
-                <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                <Text style={[styles.legendText, { color: colors.textSecondary }]}>
                   {t("bloodPressure.legendDiastolic")}
                 </Text>
               </View>
             </View>
 
-            <View style={{ flexDirection: "row", gap: 8 }}>
+            <View style={styles.summaryCardsRow}>
               <View
-                style={{
-                  flex: 1,
-                  backgroundColor: colors.surface,
-                  borderRadius: 10,
-                  padding: 10,
-                }}
+                style={[
+                  styles.summaryCard,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: `${colors.border}CC`,
+                  },
+                ]}
               >
-                <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                <Text style={[styles.summaryCardLabel, { color: colors.textSecondary }]}>
                   {t("bloodPressure.analysisAverage")}
                 </Text>
-                <Text style={{ color: colors.text, fontWeight: "700", marginTop: 4 }}>
+                <Text style={[styles.summaryCardValue, { color: colors.text }]}>
                   {summary.avgSystolic}/{summary.avgDiastolic}
                 </Text>
               </View>
 
               <View
-                style={{
-                  flex: 1,
-                  backgroundColor: colors.surface,
-                  borderRadius: 10,
-                  padding: 10,
-                }}
+                style={[
+                  styles.summaryCard,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: `${colors.border}CC`,
+                  },
+                ]}
               >
-                <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                <Text style={[styles.summaryCardLabel, { color: colors.textSecondary }]}>
                   {t("bloodPressure.analysisPeak")}
                 </Text>
-                <Text style={{ color: colors.text, fontWeight: "700", marginTop: 4 }}>
+                <Text style={[styles.summaryCardValue, { color: colors.text }]}>
                   {summary.maxSystolic}/{summary.minDiastolic}
                 </Text>
               </View>
 
               <View
-                style={{
-                  flex: 1,
-                  backgroundColor: colors.surface,
-                  borderRadius: 10,
-                  padding: 10,
-                }}
+                style={[
+                  styles.summaryCard,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: `${colors.border}CC`,
+                  },
+                ]}
               >
-                <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                <Text style={[styles.summaryCardLabel, { color: colors.textSecondary }]}>
                   {t("bloodPressure.analysisCount")}
                 </Text>
-                <Text style={{ color: colors.text, fontWeight: "700", marginTop: 4 }}>
+                <Text style={[styles.summaryCardValue, { color: colors.text }]}>
                   {summary.count}
                 </Text>
               </View>
             </View>
 
-            <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+            <Text style={[styles.trendText, { color: colors.textSecondary }]}>
               {t(`bloodPressure.trend.${summary.trendKey}`, {
                 delta: Math.abs(summary.trendDelta),
               })}
@@ -431,7 +490,7 @@ const BloodPressureScreen = ({
         )}
 
         {loading ? (
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <View style={styles.loadingWrap}>
             <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : (
@@ -439,18 +498,19 @@ const BloodPressureScreen = ({
             data={bloodPressures}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => <BloodCard data={item} />}
-            contentContainerStyle={{ paddingBottom: 20 }}
+            contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
               <View
-                style={{
-                  flex: 1,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  paddingTop: 40,
-                }}
+                style={[
+                  styles.listEmptyWrap,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: `${colors.border}CC`,
+                  },
+                ]}
               >
-                <Text style={{ color: colors.textSecondary }}>
+                <Text style={[styles.listEmptyText, { color: colors.textSecondary }]}>
                   {t("bloodPressure.noMeasurementsInPeriod")}
                 </Text>
               </View>
@@ -459,8 +519,17 @@ const BloodPressureScreen = ({
         )}
       </View>
 
-      <TouchableOpacity style={{ padding: 15 }} onPress={() => setModalVisible(true)}>
-        <View style={[styles.addBtn, { backgroundColor: colors.iconGreen }]}>
+      <TouchableOpacity style={styles.addButtonWrap} onPress={() => setModalVisible(true)}>
+        <View
+          style={[
+            styles.addBtn,
+            {
+              backgroundColor: colors.iconGreen,
+              shadowColor: colors.shadow,
+            },
+          ]}
+        >
+          <Ionicons name="add-circle-outline" size={19} color="#fff" />
           <Text style={[styles.addBtnText, { color: "#fff" }]}>
             {t("bloodPressure.addButton")}
           </Text>
