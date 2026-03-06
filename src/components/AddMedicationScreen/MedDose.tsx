@@ -1,10 +1,17 @@
 import { useTheme } from "@/src/contexts/ThemeContext";
+import styles from "@/src/styles/AddMedicationStyles";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Text, TextInput, View } from "react-native";
 
-const MedDose = ({ frequency, setFrequency, setTimeInputs }: {
+const MedDose = ({
+  frequency,
+  timeInputs,
+  setFrequency,
+  setTimeInputs,
+}: {
   frequency: string;
+  timeInputs: string[];
   setFrequency: (value: string) => void;
   setTimeInputs: (value: string[]) => void;
 }) => {
@@ -12,10 +19,14 @@ const MedDose = ({ frequency, setFrequency, setTimeInputs }: {
   const { t } = useTranslation();
 
   const handleFrequencyChange = (value: string) => {
-    setFrequency(value);
-    const freq = parseInt(value) || 0;
-    if (freq > 1) {
-      setTimeInputs(new Array(freq).fill(""));
+    const numericValue = value.replace(/[^0-9]/g, "");
+    setFrequency(numericValue);
+
+    const freq = Number.parseInt(numericValue, 10) || 0;
+    if (freq > 0) {
+      setTimeInputs(
+        Array.from({ length: freq }, (_, index) => timeInputs[index] || "")
+      );
     } else {
       setTimeInputs([]);
     }
@@ -23,25 +34,25 @@ const MedDose = ({ frequency, setFrequency, setTimeInputs }: {
 
   return (
     <View>
-      <Text style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}>
-        {t('addMedicationScreen.frequency')}
-      </Text>
+      <Text style={[styles.label, { color: colors.text }]}>{t("addMedicationScreen.frequency")}</Text>
       <TextInput
         value={frequency}
         onChangeText={handleFrequencyChange}
-        placeholder={t('addMedicationScreen.frequencyPlaceholder')}
+        placeholder={t("addMedicationScreen.frequencyPlaceholder")}
         placeholderTextColor={colors.textSecondary}
         keyboardType="numeric"
-        style={{
-          backgroundColor: colors.surface,
-          borderRadius: 10,
-          padding: 15,
-          color: colors.text,
-          fontSize: 16,
-          borderWidth: 1,
-          borderColor: "#E5E5E5",
-        }}
+        style={[
+          styles.textInput,
+          {
+            backgroundColor: colors.surface,
+            color: colors.text,
+            borderColor: `${colors.border}CC`,
+          },
+        ]}
       />
+      <Text style={[styles.helperText, { color: colors.textSecondary }]}>
+        {t("addMedicationScreen.howOften")}
+      </Text>
     </View>
   );
 };

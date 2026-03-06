@@ -119,13 +119,19 @@ const MedTile = ({ med, onPress }: MedTileProps) => {
 
   const getInstructionDisplay = (instruction: string | undefined) => {
     if (!instruction) return "";
-    if (instruction === "aç") return t("medications.onEmptyStomach");
-    if (instruction === "tok") return t("medications.onFullStomach");
+
+    const normalizedInstruction = instruction
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+
+    if (normalizedInstruction === "ac") return t("medications.onEmptyStomach");
+    if (normalizedInstruction === "tok") return t("medications.onFullStomach");
     return instruction;
   };
 
   const displayInfo = med.dosage
-    ? `${med.dosage}${med.instruction ? ` • ${getInstructionDisplay(med.instruction)}` : ""}`
+    ? `${med.dosage}${med.instruction ? ` â€¢ ${getInstructionDisplay(med.instruction)}` : ""}`
     : getInstructionDisplay(med.instruction);
 
   return (
@@ -251,3 +257,4 @@ const styles = StyleSheet.create({
 });
 
 export default MedTile;
+

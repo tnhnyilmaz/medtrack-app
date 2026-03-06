@@ -16,13 +16,23 @@ export type ScheduleType = "daily" | "weekly" | "monthly";
 export const WEEK_DAYS = [
     { key: "monday", label: "Pzt" },
     { key: "tuesday", label: "Sal" },
-    { key: "wednesday", label: "Çar" },
+    { key: "wednesday", label: "Ã‡ar" },
     { key: "thursday", label: "Per" },
     { key: "friday", label: "Cum" },
     { key: "saturday", label: "Cmt" },
     { key: "sunday", label: "Paz" },
 ];
 
+const normalizeInstruction = (value: string) =>
+    value
+        .toLowerCase()
+        .replace(/\u0131/g, "i")
+        .replace(/\u011f/g, "g")
+        .replace(/\u00fc/g, "u")
+        .replace(/\u00f6/g, "o")
+        .replace(/\u015f/g, "s")
+        .replace(/\u00e7/g, "c")
+        .trim();
 export const useMedicationForm = (id?: string) => {
     const router = useRouter();
     const [medName, setMedName] = useState("");
@@ -55,7 +65,12 @@ export const useMedicationForm = (id?: string) => {
             if (medicine) {
                 setMedName(medicine.name);
                 setFrequency(medicine.frequency.toString());
-                setWithFood(medicine.instruction || "");
+                const normalizedInstruction = normalizeInstruction(medicine.instruction || "");
+                setWithFood(
+                    normalizedInstruction === "ac" || normalizedInstruction === "tok"
+                        ? normalizedInstruction
+                        : ""
+                );
                 setMedicineForm(medicine.form || "");
 
                 // Parse dosage
@@ -94,7 +109,7 @@ export const useMedicationForm = (id?: string) => {
             }
         } catch (error) {
             console.error(error);
-            Alert.alert("Hata", "İlaç bilgileri yüklenemedi.");
+            Alert.alert("Hata", "Ä°laÃ§ bilgileri yÃ¼klenemedi.");
         }
     };
 
@@ -145,34 +160,34 @@ export const useMedicationForm = (id?: string) => {
 
     const validateAndSave = async () => {
         if (!medName.trim()) {
-            Alert.alert("Uyarı", "Lütfen ilaç adını girin.");
+            Alert.alert("UyarÄ±", "LÃ¼tfen ilaÃ§ adÄ±nÄ± girin.");
             return;
         }
         if (!durationValue.trim() || !durationType) {
-            Alert.alert("Uyarı", "Lütfen kullanım süresini ve süre tipini seçin.");
+            Alert.alert("UyarÄ±", "LÃ¼tfen kullanÄ±m sÃ¼resini ve sÃ¼re tipini seÃ§in.");
             return;
         }
         if (!frequency.trim()) {
-            Alert.alert("Uyarı", "Lütfen günlük kullanım sıklığını girin.");
+            Alert.alert("UyarÄ±", "LÃ¼tfen gÃ¼nlÃ¼k kullanÄ±m sÄ±klÄ±ÄŸÄ±nÄ± girin.");
             return;
         }
         if (parseInt(frequency) >= 1) {
             const emptyTimes = timeInputs.filter((time) => !time.trim());
             if (emptyTimes.length > 0) {
-                Alert.alert("Uyarı", "Lütfen tüm saat bilgilerini girin.");
+                Alert.alert("UyarÄ±", "LÃ¼tfen tÃ¼m saat bilgilerini girin.");
                 return;
             }
         }
         if (!withFood) {
-            Alert.alert("Uyarı", "Lütfen aç/tok durumunu seçin.");
+            Alert.alert("UyarÄ±", "LÃ¼tfen aÃ§/tok durumunu seÃ§in.");
             return;
         }
         if (scheduleType === "weekly" && selectedWeekDays.length === 0) {
-            Alert.alert("Uyarı", "Lütfen en az bir gün seçin.");
+            Alert.alert("UyarÄ±", "LÃ¼tfen en az bir gÃ¼n seÃ§in.");
             return;
         }
         if (scheduleType === "monthly" && selectedMonthDays.length === 0) {
-            Alert.alert("Uyarı", "Lütfen ayın hangi günlerinde alınacağını seçin.");
+            Alert.alert("UyarÄ±", "LÃ¼tfen ayÄ±n hangi gÃ¼nlerinde alÄ±nacaÄŸÄ±nÄ± seÃ§in.");
             return;
         }
 
@@ -241,13 +256,13 @@ export const useMedicationForm = (id?: string) => {
             }
 
             Alert.alert(
-                "Başarılı",
-                id ? "İlaç güncellendi!" : "İlaç başarıyla kaydedildi!",
+                "BaÅŸarÄ±lÄ±",
+                id ? "Ä°laÃ§ gÃ¼ncellendi!" : "Ä°laÃ§ baÅŸarÄ±yla kaydedildi!",
                 [{ text: "Tamam", onPress: () => router.back() }]
             );
         } catch (error) {
             console.error(error);
-            Alert.alert("Hata", "İlaç kaydedilirken bir sorun oluştu.");
+            Alert.alert("Hata", "Ä°laÃ§ kaydedilirken bir sorun oluÅŸtu.");
         }
     };
 
@@ -288,3 +303,4 @@ export const useMedicationForm = (id?: string) => {
         validateAndSave,
     };
 };
+

@@ -4,7 +4,9 @@ import MedForm from "@/src/components/AddMedicationScreen/MedForm";
 import MedName from "@/src/components/AddMedicationScreen/MedName";
 import MedTime from "@/src/components/AddMedicationScreen/MedTime";
 import { ScheduleType, useMedicationForm, WEEK_DAYS } from "@/src/hooks/useMedicationForm";
-import { useLocalSearchParams } from "expo-router";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -18,42 +20,114 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../src/contexts/ThemeContext";
 import styles from "../src/styles/AddMedicationStyles";
 
+const weekDayLabels: Record<string, string> = {
+  monday: "Pzt",
+  tuesday: "Sal",
+  wednesday: "Car",
+  thursday: "Per",
+  friday: "Cum",
+  saturday: "Cmt",
+  sunday: "Paz",
+};
+
 const AddMedicationScreen = () => {
   const { id } = useLocalSearchParams();
+  const router = useRouter();
   const { colors } = useTheme();
   const { t } = useTranslation();
 
   const {
-    medName, setMedName,
-    durationValue, setDurationValue,
-    durationType, setDurationType,
-    frequency, setFrequency,
-    timeInputs, setTimeInputs,
-    showTimePicker, setShowTimePicker,
-    tempHour, setTempHour,
-    tempMinute, setTempMinute,
-    withFood, setWithFood,
-    medicineForm, setMedicineForm,
-    dosageAmount, setDosageAmount,
-    dosageUnit, setDosageUnit,
-    scheduleType, setScheduleType,
-    selectedWeekDays, toggleWeekDay,
-    selectedMonthDays, toggleMonthDay,
+    medName,
+    setMedName,
+    durationValue,
+    setDurationValue,
+    durationType,
+    setDurationType,
+    frequency,
+    setFrequency,
+    timeInputs,
+    setTimeInputs,
+    showTimePicker,
+    setShowTimePicker,
+    tempHour,
+    setTempHour,
+    tempMinute,
+    setTempMinute,
+    withFood,
+    setWithFood,
+    medicineForm,
+    setMedicineForm,
+    dosageAmount,
+    setDosageAmount,
+    dosageUnit,
+    setDosageUnit,
+    scheduleType,
+    setScheduleType,
+    selectedWeekDays,
+    toggleWeekDay,
+    selectedMonthDays,
+    toggleMonthDay,
     openTimePicker,
     confirmTime,
     validateAndSave,
   } = useMedicationForm(id as string);
 
-  return (
-    <SafeAreaView style={[{ backgroundColor: colors.background }, { flex: 1 }]}>
-      <View style={styles.container}>
-        <Text style={[styles.title, { color: colors.text }]}>
-          {id ? t('addMedicationScreen.editTitle') : t('addMedicationScreen.title')}
-        </Text>
+  const frequencyCount = Number.parseInt(frequency, 10) || 0;
 
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={styles.scrollContainer}>
+  return (
+    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={["top", "bottom"]}>
+      <View style={styles.ambientLayer} pointerEvents="none">
+        <View style={[styles.ambientCircleTop, { backgroundColor: `${colors.primary}18` }]} />
+        <View style={[styles.ambientCircleBottom, { backgroundColor: `${colors.secondary}12` }]} />
+      </View>
+
+      <View style={styles.container}>
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            style={[
+              styles.iconButton,
+              { backgroundColor: colors.surface, borderColor: `${colors.border}CC` },
+            ]}
+            onPress={() => router.back()}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="arrow-back" size={19} color={colors.text} />
+          </TouchableOpacity>
+
+          <View style={styles.headerTextWrap}>
+            <Text style={[styles.title, { color: colors.text }]}>
+              {id ? t("addMedicationScreen.editTitle") : t("addMedicationScreen.title")}
+            </Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              {t("addMedicationScreen.howOften")}
+            </Text>
+          </View>
+        </View>
+
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContainer}>
+          <View
+            style={[
+              styles.sectionCard,
+              {
+                backgroundColor: colors.surface,
+                borderColor: `${colors.border}CC`,
+                shadowColor: colors.shadow,
+              },
+            ]}
+          >
             <MedName medName={medName} setMedName={setMedName} />
+          </View>
+
+          <View
+            style={[
+              styles.sectionCard,
+              {
+                backgroundColor: colors.surface,
+                borderColor: `${colors.border}CC`,
+                shadowColor: colors.shadow,
+              },
+            ]}
+          >
             <MedForm
               medicineForm={medicineForm}
               setMedicineForm={setMedicineForm}
@@ -62,311 +136,319 @@ const AddMedicationScreen = () => {
               dosageUnit={dosageUnit}
               setDosageUnit={setDosageUnit}
             />
+          </View>
+
+          <View
+            style={[
+              styles.sectionCard,
+              {
+                backgroundColor: colors.surface,
+                borderColor: `${colors.border}CC`,
+                shadowColor: colors.shadow,
+              },
+            ]}
+          >
             <MedTime
               durationValue={durationValue}
               setDurationValue={setDurationValue}
               durationType={durationType}
               setDurationType={setDurationType}
             />
+          </View>
 
-            {/* Schedule Type Selection */}
-            <View>
-              <Text style={[styles.label, { color: colors.text }]}>
-                {t('addMedicationScreen.howOften')}
-              </Text>
-              <View style={styles.durationRow}>
-                {(["daily", "weekly", "monthly"] as ScheduleType[]).map(
-                  (type) => (
-                    <TouchableOpacity
-                      key={type}
-                      onPress={() => setScheduleType(type)}
-                      style={[
-                        styles.durationButton,
-                        {
-                          backgroundColor:
-                            scheduleType === type
-                              ? colors.secondary
-                              : colors.surface,
-                          borderColor:
-                            scheduleType === type
-                              ? colors.secondary
-                              : "#E5E5E5"
-                        }
-                      ]}
-                    >
-                      <Text
-                        style={{
-                          color: scheduleType === type ? "white" : colors.text,
-                          fontSize: 14,
-                          fontWeight: "500",
-                        }}
-                      >
-                        {type === "daily"
-                          ? t('addMedicationScreen.daily')
-                          : type === "weekly"
-                            ? t('addMedicationScreen.weekly')
-                            : t('addMedicationScreen.monthly')}
-                      </Text>
-                    </TouchableOpacity>
-                  )
-                )}
-              </View>
+          <View
+            style={[
+              styles.sectionCard,
+              {
+                backgroundColor: colors.surface,
+                borderColor: `${colors.border}CC`,
+                shadowColor: colors.shadow,
+              },
+            ]}
+          >
+            <Text style={[styles.label, { color: colors.text }]}>{t("addMedicationScreen.howOften")}</Text>
+
+            <View style={styles.chipWrap}>
+              {(["daily", "weekly", "monthly"] as ScheduleType[]).map((type) => {
+                const selected = scheduleType === type;
+
+                return (
+                  <TouchableOpacity
+                    key={type}
+                    onPress={() => setScheduleType(type)}
+                    style={[
+                      styles.durationButton,
+                      {
+                        backgroundColor: selected ? colors.secondary : colors.surface,
+                        borderColor: selected ? colors.secondary : `${colors.border}CC`,
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.durationButtonText, { color: selected ? "white" : colors.text }]}>
+                      {type === "daily"
+                        ? t("addMedicationScreen.daily")
+                        : type === "weekly"
+                          ? t("addMedicationScreen.weekly")
+                          : t("addMedicationScreen.monthly")}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
-            {/* Weekly Day Selection */}
             {scheduleType === "weekly" && (
-              <View>
-                <Text style={[styles.label, { color: colors.text }]}>
-                  {t('addMedicationScreen.whichDays')}
-                </Text>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                  {WEEK_DAYS.map((day) => (
-                    <TouchableOpacity
-                      key={day.key}
-                      onPress={() => toggleWeekDay(day.key)}
-                      style={{
-                        backgroundColor: selectedWeekDays.includes(day.key)
-                          ? colors.secondary
-                          : colors.surface,
-                        borderRadius: 10,
-                        paddingVertical: 10,
-                        paddingHorizontal: 16,
-                        borderWidth: 1,
-                        borderColor: selectedWeekDays.includes(day.key)
-                          ? colors.secondary
-                          : "#E5E5E5",
-                      }}
-                    >
-                      <Text
-                        style={{
-                          color: selectedWeekDays.includes(day.key)
-                            ? "white"
-                            : colors.text,
-                          fontSize: 14,
-                          fontWeight: "500",
-                        }}
+              <View style={{ marginTop: 12 }}>
+                <Text style={[styles.label, { color: colors.text }]}>{t("addMedicationScreen.whichDays")}</Text>
+                <View style={styles.chipWrap}>
+                  {WEEK_DAYS.map((day) => {
+                    const selected = selectedWeekDays.includes(day.key);
+
+                    return (
+                      <TouchableOpacity
+                        key={day.key}
+                        onPress={() => toggleWeekDay(day.key)}
+                        style={[
+                          styles.weekDayChip,
+                          {
+                            backgroundColor: selected ? colors.secondary : colors.surface,
+                            borderColor: selected ? colors.secondary : `${colors.border}CC`,
+                          },
+                        ]}
                       >
-                        {day.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                        <Text style={[styles.weekDayText, { color: selected ? "white" : colors.text }]}>
+                          {weekDayLabels[day.key] || day.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               </View>
             )}
 
-            {/* Monthly Day Selection */}
             {scheduleType === "monthly" && (
-              <View>
-                <Text style={[styles.label, { color: colors.text }]}>
-                  {t('addMedicationScreen.whichDaysOfMonth')}
-                </Text>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-                  {Array.from({ length: 31 }, (_, i) => (i + 1).toString()).map(
-                    (day) => (
+              <View style={{ marginTop: 12 }}>
+                <Text style={[styles.label, { color: colors.text }]}>{t("addMedicationScreen.whichDaysOfMonth")}</Text>
+                <View style={styles.chipWrap}>
+                  {Array.from({ length: 31 }, (_, i) => (i + 1).toString()).map((day) => {
+                    const selected = selectedMonthDays.includes(day);
+
+                    return (
                       <TouchableOpacity
                         key={day}
                         onPress={() => toggleMonthDay(day)}
-                        style={{
-                          backgroundColor: selectedMonthDays.includes(day)
-                            ? colors.secondary
-                            : colors.surface,
-                          borderRadius: 8,
-                          width: 40,
-                          height: 40,
-                          alignItems: "center",
-                          justifyContent: "center",
-                          borderWidth: 1,
-                          borderColor: selectedMonthDays.includes(day)
-                            ? colors.secondary
-                            : "#E5E5E5",
-                        }}
+                        style={[
+                          styles.monthDayChip,
+                          {
+                            backgroundColor: selected ? colors.secondary : colors.surface,
+                            borderColor: selected ? colors.secondary : `${colors.border}CC`,
+                          },
+                        ]}
                       >
-                        <Text
-                          style={{
-                            color: selectedMonthDays.includes(day)
-                              ? "white"
-                              : colors.text,
-                            fontSize: 14,
-                            fontWeight: "500",
-                          }}
-                        >
+                        <Text style={[styles.monthDayText, { color: selected ? "white" : colors.text }]}>
                           {day}
                         </Text>
                       </TouchableOpacity>
-                    )
-                  )}
+                    );
+                  })}
                 </View>
               </View>
             )}
+          </View>
 
+          <View
+            style={[
+              styles.sectionCard,
+              {
+                backgroundColor: colors.surface,
+                borderColor: `${colors.border}CC`,
+                shadowColor: colors.shadow,
+              },
+            ]}
+          >
             <MedDose
               frequency={frequency}
+              timeInputs={timeInputs}
               setFrequency={setFrequency}
               setTimeInputs={setTimeInputs}
             />
+          </View>
 
-            {parseInt(frequency) > 1 && (
-              <MedClock
-                timeInputs={timeInputs}
-                openTimePicker={openTimePicker}
-              />
-            )}
+          {frequencyCount > 1 && (
+            <View
+              style={[
+                styles.sectionCard,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: `${colors.border}CC`,
+                  shadowColor: colors.shadow,
+                },
+              ]}
+            >
+              <MedClock timeInputs={timeInputs} openTimePicker={openTimePicker} />
+            </View>
+          )}
 
-            {parseInt(frequency) === 1 && (
-              <View>
-                <Text style={[styles.label, { color: colors.text }]}>
-                  {t('addMedicationScreen.time')}
+          {frequencyCount === 1 && (
+            <View
+              style={[
+                styles.sectionCard,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: `${colors.border}CC`,
+                  shadowColor: colors.shadow,
+                },
+              ]}
+            >
+              <Text style={[styles.label, { color: colors.text }]}>{t("addMedicationScreen.time")}</Text>
+              <TouchableOpacity
+                onPress={() => openTimePicker(0)}
+                style={[
+                  styles.timeButton,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: `${colors.border}CC`,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.timeButtonText,
+                    { color: timeInputs[0] ? colors.text : colors.textSecondary },
+                  ]}
+                >
+                  {timeInputs[0] || t("addMedicationScreen.selectTime")}
                 </Text>
-                <TouchableOpacity
-                  onPress={() => openTimePicker(0)}
-                  style={[styles.textInput, { backgroundColor: colors.surface }]}
-                >
-                  <Text
-                    style={{
-                      color: timeInputs[0] ? colors.text : colors.textSecondary,
-                      fontSize: 16,
-                    }}
-                  >
-                    {timeInputs[0] || t('addMedicationScreen.selectTime')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
+              </TouchableOpacity>
+            </View>
+          )}
 
-            <View>
-              <Text style={[styles.label, { color: colors.text }]}>
-                {t('addMedicationScreen.emptyOrFull')}
-              </Text>
-              <View style={styles.foodRow}>
-                <TouchableOpacity
-                  onPress={() => setWithFood("aç")}
-                  style={[
-                    styles.foodButton,
-                    {
-                      backgroundColor:
-                        withFood === "aç" ? colors.secondary : colors.surface,
-                    }
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.foodButtonText,
-                      { color: withFood === "aç" ? "white" : colors.text }
-                    ]}
-                  >
-                    {t('addMedicationScreen.empty')}
-                  </Text>
-                </TouchableOpacity>
+          <View
+            style={[
+              styles.sectionCard,
+              {
+                backgroundColor: colors.surface,
+                borderColor: `${colors.border}CC`,
+                shadowColor: colors.shadow,
+              },
+            ]}
+          >
+            <Text style={[styles.label, { color: colors.text }]}>{t("addMedicationScreen.emptyOrFull")}</Text>
 
-                <TouchableOpacity
-                  onPress={() => setWithFood("tok")}
-                  style={[
-                    styles.foodButton,
-                    {
-                      backgroundColor:
-                        withFood === "tok" ? colors.secondary : colors.surface,
-                    }
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.foodButtonText,
-                      { color: withFood === "tok" ? "white" : colors.text }
-                    ]}
-                  >
-                    {t('addMedicationScreen.full')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+            <View style={styles.foodRow}>
+              <TouchableOpacity
+                onPress={() => setWithFood("ac")}
+                style={[
+                  styles.foodButton,
+                  {
+                    backgroundColor: withFood === "ac" ? colors.secondary : colors.surface,
+                    borderColor: withFood === "ac" ? colors.secondary : `${colors.border}CC`,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="sunny-outline"
+                  size={16}
+                  color={withFood === "ac" ? "#fff" : colors.textSecondary}
+                />
+                <Text style={[styles.foodButtonText, { color: withFood === "ac" ? "white" : colors.text }]}>
+                  {t("addMedicationScreen.empty")}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setWithFood("tok")}
+                style={[
+                  styles.foodButton,
+                  {
+                    backgroundColor: withFood === "tok" ? colors.secondary : colors.surface,
+                    borderColor: withFood === "tok" ? colors.secondary : `${colors.border}CC`,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="restaurant-outline"
+                  size={16}
+                  color={withFood === "tok" ? "#fff" : colors.textSecondary}
+                />
+                <Text style={[styles.foodButtonText, { color: withFood === "tok" ? "white" : colors.text }]}>
+                  {t("addMedicationScreen.full")}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
 
-        <Modal visible={showTimePicker} transparent animationType="slide">
+        <Modal visible={showTimePicker} transparent animationType="fade">
           <View style={styles.modalOverlay}>
-            <View style={[styles.modalContainer, { backgroundColor: colors.surface }]}>
+            <View
+              style={[
+                styles.modalContainer,
+                { backgroundColor: colors.surface, borderColor: `${colors.border}CC` },
+              ]}
+            >
               <Text style={[styles.modalTitle, { color: colors.text }]}>
-                {t('addMedicationScreen.selectTimeTitle')}
+                {t("addMedicationScreen.selectTimeTitle")}
               </Text>
 
               <View style={styles.timePickerRow}>
                 <View style={styles.timePickerColumn}>
-                  <Text style={[styles.timePickerLabel, { color: colors.text }]}>
-                    {t('addMedicationScreen.hour')}
+                  <Text style={[styles.timePickerLabel, { color: colors.textSecondary }]}>
+                    {t("addMedicationScreen.hour")}
                   </Text>
-                  <ScrollView
-                    style={styles.timePickerScroll}
-                    showsVerticalScrollIndicator={false}
-                  >
-                    {Array.from({ length: 24 }, (_, i) => {
-                      const hour = i.toString().padStart(2, "0");
-                      return (
-                        <TouchableOpacity
-                          key={i}
-                          onPress={() => setTempHour(hour)}
+                  <ScrollView style={styles.timePickerScroll} showsVerticalScrollIndicator={false}>
+                    {Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, "0")).map((hour) => (
+                      <TouchableOpacity
+                        key={hour}
+                        onPress={() => setTempHour(hour)}
+                        style={[
+                          styles.timePickerItem,
+                          {
+                            backgroundColor: tempHour === hour ? colors.secondary : `${colors.surfaceVariant}`,
+                          },
+                        ]}
+                      >
+                        <Text
                           style={[
-                            styles.timePickerItem,
-                            {
-                              backgroundColor:
-                                tempHour === hour
-                                  ? colors.secondary
-                                  : "transparent",
-                            }
+                            styles.timePickerItemText,
+                            { color: tempHour === hour ? "white" : colors.text },
                           ]}
                         >
-                          <Text
-                            style={[
-                              styles.timePickerItemText,
-                              { color: tempHour === hour ? "white" : colors.text }
-                            ]}
-                          >
-                            {hour}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
+                          {hour}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
                   </ScrollView>
                 </View>
 
-                <Text style={[styles.timeSeparator, { color: colors.text }]}>
-                  :
-                </Text>
+                <Text style={[styles.timeSeparator, { color: colors.text }]}>:</Text>
 
                 <View style={styles.timePickerColumn}>
-                  <Text style={[styles.timePickerLabel, { color: colors.text }]}>
-                    {t('addMedicationScreen.minute')}
+                  <Text style={[styles.timePickerLabel, { color: colors.textSecondary }]}>
+                    {t("addMedicationScreen.minute")}
                   </Text>
-                  <ScrollView
-                    style={styles.timePickerScroll}
-                    showsVerticalScrollIndicator={false}
-                  >
-                    {Array.from({ length: 60 }, (_, i) => {
-                      const minute = i.toString().padStart(2, "0");
-                      return (
-                        <TouchableOpacity
-                          key={i}
-                          onPress={() => setTempMinute(minute)}
+                  <ScrollView style={styles.timePickerScroll} showsVerticalScrollIndicator={false}>
+                    {Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, "0")).map((minute) => (
+                      <TouchableOpacity
+                        key={minute}
+                        onPress={() => setTempMinute(minute)}
+                        style={[
+                          styles.timePickerItem,
+                          {
+                            backgroundColor:
+                              tempMinute === minute ? colors.secondary : `${colors.surfaceVariant}`,
+                          },
+                        ]}
+                      >
+                        <Text
                           style={[
-                            styles.timePickerItem,
-                            {
-                              backgroundColor:
-                                tempMinute === minute
-                                  ? colors.secondary
-                                  : "transparent",
-                            }
+                            styles.timePickerItemText,
+                            { color: tempMinute === minute ? "white" : colors.text },
                           ]}
                         >
-                          <Text
-                            style={[
-                              styles.timePickerItemText,
-                              { color: tempMinute === minute ? "white" : colors.text }
-                            ]}
-                          >
-                            {minute}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
+                          {minute}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
                   </ScrollView>
                 </View>
               </View>
@@ -376,28 +458,35 @@ const AddMedicationScreen = () => {
                   onPress={() => setShowTimePicker(false)}
                   style={[styles.modalButton, { backgroundColor: colors.textSecondary }]}
                 >
-                  <Text style={styles.modalButtonText}>{t('addMedicationScreen.cancel')}</Text>
+                  <Text style={styles.modalButtonText}>{t("addMedicationScreen.cancel")}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   onPress={confirmTime}
                   style={[styles.modalButton, { backgroundColor: colors.secondary }]}
                 >
-                  <Text style={styles.modalButtonText}>{t('addMedicationScreen.ok')}</Text>
+                  <Text style={styles.modalButtonText}>{t("addMedicationScreen.ok")}</Text>
                 </TouchableOpacity>
               </View>
             </View>
           </View>
         </Modal>
 
-        <TouchableOpacity
-          onPress={validateAndSave}
-          style={[styles.saveButton, { backgroundColor: colors.secondary }]}
-        >
-          <Text style={styles.saveButtonText}>
-            {id ? t('addMedicationScreen.update') : t('addMedicationScreen.save')}
-          </Text>
-        </TouchableOpacity>
+        <View style={[styles.saveBar, { backgroundColor: `${colors.background}F2`, borderTopColor: `${colors.border}AA` }]}>
+          <TouchableOpacity onPress={validateAndSave} style={styles.saveButtonWrap} activeOpacity={0.9}>
+            <LinearGradient
+              colors={[colors.secondary, colors.iconGreen] as [string, string]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.saveButton}
+            >
+              <Ionicons name={id ? "save-outline" : "checkmark-circle-outline"} size={19} color="#fff" />
+              <Text style={styles.saveButtonText}>
+                {id ? t("addMedicationScreen.update") : t("addMedicationScreen.save")}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
