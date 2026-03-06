@@ -1,17 +1,20 @@
 import { useTheme } from "@/src/contexts/ThemeContext";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 import styles from "../../styles/BloodPressureStyle";
 
+type BloodPressureStatus = "low" | "normal" | "elevated" | "high";
+
 interface BloodDataProps {
-  id: string | number; // DÜZELTME 1: Sayı da gelebilir
+  id: string | number;
   systolic: number;
   diastolic: number;
+  pulse?: number;
   time: string;
-  status: string;
+  status: BloodPressureStatus;
   note: string;
 }
 
@@ -19,45 +22,47 @@ const BloodCard = ({ data }: { data: BloodDataProps }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
-  // --- RENK BELİRLEME FONKSİYONU ---
-  const getStatusStyle = (status: string) => {
-    // Varsayılan Renkler (Theme'den gelmezse diye fallback)
-    const errorColor = colors.error || "#FF3B30"; // Kırmızı
-    const warningColor = colors.warning || "#FF9500"; // Turuncu
-    const successColor = colors.success || "#34C759"; // Yeşil
-    const defaultColor = colors.textSecondary || "#8E8E93"; // Gri
 
-    // Check both Turkish and English status texts
-    const isHigh = status === "Yüksek" || status === "Hafif Yüksek" ||
-      status === t('bloodPressure.statusHigh') || status === t('bloodPressure.statusElevated');
-    const isLow = status === "Düşük" || status === t('bloodPressure.statusLow');
-    const isNormal = status === "Normal" || status === t('bloodPressure.statusNormal');
+  const statusStyle = useMemo(() => {
+    const errorColor = colors.error || "#FF3B30";
+    const warningColor = colors.warning || "#FF9500";
+    const successColor = colors.success || "#34C759";
+    const defaultColor = colors.textSecondary || "#8E8E93";
 
-    if (isHigh) {
+    if (data.status === "high") {
       return {
         color: errorColor,
         backgroundColor: `${errorColor}20`,
       };
     }
-    if (isLow) {
+
+    if (data.status === "elevated" || data.status === "low") {
       return {
         color: warningColor,
         backgroundColor: `${warningColor}20`,
       };
     }
-    if (isNormal) {
+
+    if (data.status === "normal") {
       return {
         color: successColor,
         backgroundColor: `${successColor}20`,
       };
     }
+
     return {
       color: defaultColor,
       backgroundColor: `${defaultColor}20`,
     };
+  }, [colors.error, colors.success, colors.textSecondary, colors.warning, data.status]);
+
+  const getStatusLabel = (status: BloodPressureStatus) => {
+    if (status === "low") return t("bloodPressure.statusLow");
+    if (status === "elevated") return t("bloodPressure.statusElevated");
+    if (status === "high") return t("bloodPressure.statusHigh");
+    return t("bloodPressure.statusNormal");
   };
 
-  const statusStyle = getStatusStyle(data.status);
   return (
     <View
       style={[
@@ -69,7 +74,6 @@ const BloodCard = ({ data }: { data: BloodDataProps }) => {
         },
       ]}
     >
-      {/* --- ÜST KISIM --- */}
       <View
         style={{
           flexDirection: "row",
@@ -84,77 +88,65 @@ const BloodCard = ({ data }: { data: BloodDataProps }) => {
               { backgroundColor: colors.measurBackRed },
             ]}
           >
-            <FontAwesome5
-              name="heartbeat"
-              size={24}
-              color={colors.measurIconRed}
-            />
+            <FontAwesome5 name="heartbeat" size={24} color={colors.measurIconRed} />
           </View>
+
           <View>
             <Text style={[styles.bloodText, { color: colors.text }]}>
               {data.systolic}/{data.diastolic} mmHg
             </Text>
-            <View style={[styles.row, { gap: 10 }]}>
-              <Text style={{ color: colors.textSecondary || "gray" }}>
-                {data.time} -
-              </Text>
+            <View style={[styles.row, { gap: 10, flexWrap: "wrap" }]}>
+              <Text style={{ color: colors.textSecondary || "gray" }}>{data.time}</Text>
               <View
                 style={{
                   backgroundColor: statusStyle.backgroundColor,
-                  paddingHorizontal: 8, // Sağdan soldan boşluk
-                  paddingVertical: 2, // Yukarıdan aşağıdan boşluk
-                  borderRadius: 6, // Köşeleri yuvarlatma
+                  paddingHorizontal: 8,
+                  paddingVertical: 2,
+                  borderRadius: 6,
                 }}
               >
                 <Text
                   style={{
                     color: statusStyle.color,
                     fontWeight: "600",
-                    fontSize: 12, // Status yazısını biraz küçülttük daha kibar durması için
+                    fontSize: 12,
                   }}
                 >
-                  {data.status}
+                  {getStatusLabel(data.status)}
                 </Text>
               </View>
             </View>
           </View>
         </View>
 
-        {/* Sağ Taraf: Ok İkonu */}
-        <Pressable
-          onPress={() => setExpanded(!expanded)}
-          style={{ padding: 5 }}
-        >
+        <Pressable onPress={() => setExpanded((previous) => !previous)} style={{ padding: 5 }}>
           <Entypo
             name={expanded ? "chevron-small-up" : "chevron-small-down"}
             size={24}
-            color={colors.text} // DÜZELTME 2: Tema rengine bağlandı
+            color={colors.text}
           />
         </Pressable>
       </View>
 
-      {/* --- ALT KISIM (Not Alanı) --- */}
       {expanded && (
         <View
           style={{
             marginTop: 10,
             paddingTop: 10,
             borderTopWidth: 1,
-            borderTopColor: colors.border || "#eee", // Kenarlık rengini de temaya bağlayabilirsin
+            borderTopColor: colors.border || "#eee",
+            gap: 4,
           }}
         >
-          <Text
-            style={{ fontWeight: "bold", color: colors.text, marginBottom: 2 }}
-          >
-            {t('bloodPressure.note')}:
-          </Text>
-          <Text
-            style={{
-              color: colors.textSecondary || "gray",
-              fontStyle: "italic",
-            }}
-          >
-            {data.note}
+          {typeof data.pulse === "number" && (
+            <Text style={{ color: colors.textSecondary }}>
+              {t("bloodPressure.pulse")}: {data.pulse} BPM
+            </Text>
+          )}
+
+          <Text style={{ fontWeight: "bold", color: colors.text }}>{t("bloodPressure.note")}</Text>
+          <Text style={{ color: colors.textSecondary || "gray", fontStyle: "italic" }}>
+            {data.note || t("bloodPressure.noNote")}
           </Text>
         </View>
       )}

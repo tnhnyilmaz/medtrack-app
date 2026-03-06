@@ -1,5 +1,6 @@
 export const Colors = {
   light: {
+    greenHome: '#8bf3a5',
     primary: '#4A90E2',
     secondary: '#34C759',
     lowSecondary: 'rgba(139, 240, 173, 1)',
@@ -47,6 +48,7 @@ export const Colors = {
 
   },
   dark: {
+    greenHome: '#105c23',
     primary: '#5AC8FA',
     secondary: '#32D74B',
     lowSecondary: 'rgba(50, 215, 75, 0.4)',

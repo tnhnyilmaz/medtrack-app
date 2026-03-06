@@ -1,37 +1,45 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { RefreshControl, ScrollView, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AppBar from "../components/HomeScreen/AppBar";
 import MeasurementsCard from "../components/HomeScreen/MeasurementsCard";
 import MedList from "../components/HomeScreen/MedList";
-import { useDevice } from "../contexts/DeviceContext";
 import { useTheme } from "../contexts/ThemeContext";
 import styles from "../styles/HomeScreenStyles";
 
 const HomeScreen = () => {
   const { colors } = useTheme();
-  const { deviceName, isConnected } = useDevice();
   const [refreshing, setRefreshing] = React.useState(false);
 
-  useEffect(() => {
-    if (isConnected && deviceName) {
-      console.log(`📱 Hasta Ekranı Açıldı - Bağlı Cihaz: ${deviceName}`);
-    } else {
-      console.log("⚠️ Hasta Ekranı Açıldı - Cihaz Bağlı Değil");
-    }
-  }, []);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    // The child components will handle their own refresh
     setTimeout(() => setRefreshing(false), 1000);
   }, []);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <AppBar />
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      edges={["top"]}
+    >
+      <View style={styles.ambientLayer} pointerEvents="none">
+        <View
+          style={[
+            styles.ambientCircleTop,
+            { backgroundColor: `${colors.primary}18` },
+          ]}
+        />
+        <View
+          style={[
+            styles.ambientCircleBottom,
+            { backgroundColor: `${colors.secondary}12` },
+          ]}
+        />
+      </View>
+
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ gap: 10, paddingBottom: 20 }}
+        contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -41,10 +49,11 @@ const HomeScreen = () => {
           />
         }
       >
+        <AppBar />
         <MedList />
         <MeasurementsCard />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 

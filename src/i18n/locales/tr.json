@@ -69,7 +69,27 @@
         "statusLow": "Düşük",
         "statusNormal": "Normal",
         "statusElevated": "Hafif Yüksek",
-        "statusHigh": "Yüksek"
+        "statusHigh": "Yüksek",
+        "customDate": "Tarih",
+        "customHour": "Saat",
+        "noNote": "Not yok",
+        "legendSystolic": "Sistolik",
+        "legendDiastolic": "Diastolik",
+        "analysisAverage": "Ortalama",
+        "analysisPeak": "Tepe/Min",
+        "analysisCount": "Kay�t",
+        "trend": {
+            "up": "Sistolik trend y�kseliyor (+{{delta}} mmHg).",
+            "down": "Sistolik trend d���yor (-{{delta}} mmHg).",
+            "stable": "Sistolik trend stabil ({{delta}} mmHg de�i�im)."
+        },
+        "errors": {
+            "requiredFields": "Ge�erli sistolik ve diastolik de�er girin.",
+            "invalidSystolic": "Sistolik de�er 60 ile 260 aras�nda olmal�.",
+            "invalidDiastolic": "Diastolik de�er 40 ile 150 aras�nda olmal�.",
+            "diastolicMustBeLower": "Diastolik de�er sistolikten k���k olmal�.",
+            "invalidPulse": "Nab�z de�eri 30 ile 220 aras�nda olmal�."
+        }
     },
     "sugar": {
         "title": "Şeker",
@@ -90,7 +110,23 @@
         "statusLow": "Düşük",
         "statusNormal": "Normal",
         "statusHigh": "Yüksek",
-        "statusVeryHigh": "Çok Yüksek"
+        "statusVeryHigh": "Çok Yüksek",
+        "customDate": "Tarih",
+        "customHour": "Saat",
+        "noNote": "Not yok",
+        "legendLevel": "Glikoz seviyesi",
+        "analysisAverage": "Ortalama",
+        "analysisRange": "Min/Maks",
+        "analysisNormalRate": "Hedef aral�k",
+        "trend": {
+            "up": "Trend y�kseliyor (+{{delta}} mg/dL, {{count}} kay�t).",
+            "down": "Trend d���yor (-{{delta}} mg/dL, {{count}} kay�t).",
+            "stable": "Trend stabil ({{delta}} mg/dL de�i�im, {{count}} kay�t)."
+        },
+        "errors": {
+            "requiredLevel": "Ge�erli bir glikoz de�eri girin.",
+            "invalidLevel": "Glikoz de�eri 20 ile 600 aras�nda olmal�."
+        }
     },
     "period": {
         "daily": "Günlük",

@@ -1,14 +1,12 @@
 import * as SQLite from 'expo-sqlite';
 
-const DB_NAME = 'medtrack.db';
-
 // Lazy database getter to avoid require cycle
 const getDB = async (): Promise<SQLite.SQLiteDatabase> => {
     const { initDB } = await import('./index');
     return initDB();
 };
 
-export type PeriodType = 'Günlük' | 'Haftalık' | 'Aylık';
+export type PeriodType = 'daily' | 'weekly' | 'monthly';
 
 // Helper to get date range based on period
 const getDateRange = (period: PeriodType): { startDate: string; endDate: string } => {
@@ -20,14 +18,14 @@ const getDateRange = (period: PeriodType): { startDate: string; endDate: string 
     startDate.setHours(0, 0, 0, 0);
 
     switch (period) {
-        case 'Günlük':
+        case 'daily':
             // Today only - startDate is already set to beginning of today
             break;
-        case 'Haftalık':
+        case 'weekly':
             // Last 7 days
             startDate.setDate(startDate.getDate() - 6);
             break;
-        case 'Aylık':
+        case 'monthly':
             // Last 30 days
             startDate.setDate(startDate.getDate() - 29);
             break;
@@ -204,8 +202,8 @@ export const seedMeasurementData = async () => {
             const measureDate = new Date(date);
             measureDate.setHours(hour, Math.floor(Math.random() * 60), 0, 0);
 
-            const type = i === 0 ? 'Açlık' : 'Tokluk';
-            const level = type === 'Açlık'
+            const type = i === 0 ? 'fasting' : 'postprandial';
+            const level = type === 'fasting'
                 ? 70 + Math.floor(Math.random() * 60) // 70-130 for fasting
                 : 90 + Math.floor(Math.random() * 80); // 90-170 for postprandial
 

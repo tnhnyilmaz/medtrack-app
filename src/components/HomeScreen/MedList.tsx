@@ -24,7 +24,6 @@ const MedList = () => {
   const { t } = useTranslation();
   const [medications, setMedications] = useState<TodayMedication[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [selectedMed, setSelectedMed] = useState<TodayMedication | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -37,21 +36,14 @@ const MedList = () => {
       console.error("Failed to load medications:", error);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   }, []);
 
-  // Reload medications when screen gains focus
   useFocusEffect(
     useCallback(() => {
       loadMedications();
     }, [loadMedications])
   );
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    loadMedications();
-  }, [loadMedications]);
 
   const handleMedicationPress = (med: TodayMedication) => {
     setSelectedMed(med);
@@ -103,74 +95,70 @@ const MedList = () => {
     const isTaken =
       selectedMed.status === "taken" || selectedMed.status === "taken_late";
     const isMissed = selectedMed.status === "missed";
-    const isPending = selectedMed.status === "pending";
 
     return (
-      <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
-        {/* Medicine Info */}
+      <View style={[styles.modalContent, { backgroundColor: colors.surface }]}> 
         <View style={styles.modalHeader}>
           <View
             style={[
               styles.modalIconContainer,
-              { backgroundColor: colors.secondary + "20" },
+              { backgroundColor: `${colors.secondary}22` },
             ]}
           >
             <MaterialCommunityIcons
               name="pill"
-              size={32}
+              size={30}
               color={colors.secondary}
             />
           </View>
           <Text style={[styles.modalTitle, { color: colors.text }]}>
             {selectedMed.name}
           </Text>
-          <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
-            {selectedMed.dosage && `${selectedMed.dosage} â€¢ `}
+          <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}> 
+            {selectedMed.dosage && `${selectedMed.dosage} • `}
             {selectedMed.schedule_time}
           </Text>
         </View>
 
-        {/* Status Message */}
         {isMissed && (
-          <View style={[styles.warningBox, { backgroundColor: "#FEE2E2" }]}>
+          <View style={[styles.warningBox, { backgroundColor: "#FEE2E2" }]}> 
             <Ionicons name="warning" size={20} color="#EF4444" />
-            <Text style={[styles.warningText, { color: "#EF4444" }]}>
-              {t('home.lateWarning')}
+            <Text style={[styles.warningText, { color: "#EF4444" }]}> 
+              {t("home.lateWarning")}
             </Text>
           </View>
         )}
 
         {selectedMed.status === "taken_late" && (
-          <View style={[styles.warningBox, { backgroundColor: "#FFF3E0" }]}>
+          <View style={[styles.warningBox, { backgroundColor: "#FFF3E0" }]}> 
             <Ionicons name="time" size={20} color="#FF9800" />
-            <Text style={[styles.warningText, { color: "#FF9800" }]}>
-              {t('home.takenLateAt').replace('{time}', selectedMed.taken_time || '')}
+            <Text style={[styles.warningText, { color: "#FF9800" }]}> 
+              {t("home.takenLateAt").replace(
+                "{time}",
+                selectedMed.taken_time || ""
+              )}
             </Text>
           </View>
         )}
 
         {isTaken && selectedMed.status !== "taken_late" && (
-          <View style={[styles.warningBox, { backgroundColor: "#DCFCE7" }]}>
+          <View style={[styles.warningBox, { backgroundColor: "#DCFCE7" }]}> 
             <Ionicons name="checkmark-circle" size={20} color="#22C55E" />
-            <Text style={[styles.warningText, { color: "#22C55E" }]}>
-              {t('home.takenAt').replace('{time}', selectedMed.taken_time || '')}
+            <Text style={[styles.warningText, { color: "#22C55E" }]}> 
+              {t("home.takenAt").replace("{time}", selectedMed.taken_time || "")}
             </Text>
           </View>
         )}
 
-        {/* Action Buttons */}
         <View style={styles.modalActions}>
           {!isTaken && (
             <TouchableOpacity
-              style={[
-                styles.actionButton,
-                { backgroundColor: colors.secondary },
-              ]}
+              style={[styles.actionButton, { backgroundColor: colors.secondary }]}
               onPress={handleConfirmIntake}
             >
-              <Ionicons name="checkmark" size={24} color="white" />
+              <Ionicons name="checkmark" size={22} color="white" />
               <Text style={styles.actionButtonText}>
-                {isMissed ? t('home.takeLate') : t('home.takeMed')}
+                {isMissed ? t("home.takeLate") : t("home.takeMed")}
               </Text>
             </TouchableOpacity>
           )}
@@ -180,8 +168,8 @@ const MedList = () => {
               style={[styles.actionButton, { backgroundColor: "#EF4444" }]}
               onPress={handleUndoIntake}
             >
-              <Ionicons name="arrow-undo" size={24} color="white" />
-              <Text style={styles.actionButtonText}>{t('home.undo')}</Text>
+              <Ionicons name="arrow-undo" size={22} color="white" />
+              <Text style={styles.actionButtonText}>{t("home.undo")}</Text>
             </TouchableOpacity>
           )}
 
@@ -189,10 +177,8 @@ const MedList = () => {
             style={[styles.cancelButton, { borderColor: colors.textSecondary }]}
             onPress={closeModal}
           >
-            <Text
-              style={[styles.cancelButtonText, { color: colors.textSecondary }]}
-            >
-              {t('home.close')}
+            <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}> 
+              {t("home.close")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -212,11 +198,11 @@ const MedList = () => {
     if (medications.length === 0) {
       return (
         <View style={styles.emptyContainer}>
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            {t('home.noMedicationsScheduled')}
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}> 
+            {t("home.noMedicationsScheduled")}
           </Text>
-          <Text style={[styles.emptySubText, { color: colors.textSecondary }]}>
-            {t('home.tapPlusToAdd')}
+          <Text style={[styles.emptySubText, { color: colors.textSecondary }]}> 
+            {t("home.tapPlusToAdd")}
           </Text>
         </View>
       );
@@ -228,9 +214,7 @@ const MedList = () => {
           <View key={`${med.medicine_id}-${med.schedule_time}`}>
             <MedTile med={med} onPress={() => handleMedicationPress(med)} />
             {index < medications.length - 1 && (
-              <View
-                style={[styles.divider, { backgroundColor: colors.divider }]}
-              />
+              <View style={[styles.divider, { backgroundColor: colors.divider }]} />
             )}
           </View>
         ))}
@@ -241,20 +225,34 @@ const MedList = () => {
   return (
     <View>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>
-          {t('home.todaysMedications')}
-        </Text>
-        <TouchableOpacity onPress={() => router.push("/medicationsScreen")}>
-          <Text style={[styles.seeAllText, { color: colors.textSecondary }]}>
-            {t('home.allMedications')}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Text style={[styles.title, { color: colors.text }]}>
+            {t("home.todaysMedications")}
           </Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => router.push("/medicationsScreen")}
+          style={[styles.seeAllChip, { backgroundColor: `${colors.primary}12` }]}
+        >
+          <Text style={[styles.seeAllText, { color: colors.primary }]}> 
+            {t("home.allMedications")}
+          </Text>
+          <Ionicons name="chevron-forward" size={14} color={colors.primary} />
         </TouchableOpacity>
       </View>
-      <View style={[styles.container, { backgroundColor: colors.surface }]}>
+
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: colors.surface,
+            borderColor: `${colors.border}80`,
+          },
+        ]}
+      >
         {renderContent()}
       </View>
 
-      {/* Medication Action Modal */}
       <Modal
         visible={modalVisible}
         transparent
@@ -266,9 +264,7 @@ const MedList = () => {
           activeOpacity={1}
           onPress={closeModal}
         >
-          <TouchableOpacity activeOpacity={1}>
-            {getModalContent()}
-          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={1}>{getModalContent()}</TouchableOpacity>
         </TouchableOpacity>
       </Modal>
     </View>
@@ -281,83 +277,101 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 12,
+    gap: 10,
   },
   title: {
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 22,
+    fontWeight: "800",
+    letterSpacing: -0.2,
+    flexShrink: 1,
+  },
+  seeAllChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
   },
   seeAllText: {
-    fontSize: 14,
-    fontWeight: "500",
+    fontSize: 12,
+    fontWeight: "700",
   },
   container: {
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  scrollContent: {
-    flexGrow: 1,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    elevation: 3,
   },
   divider: {
     height: 1,
     borderRadius: 1,
   },
   emptyContainer: {
-    paddingVertical: 20,
+    paddingVertical: 28,
     alignItems: "center",
+    gap: 4,
   },
   emptyText: {
-    fontSize: 16,
-    fontWeight: "500",
-    marginBottom: 4,
+    fontSize: 15,
+    fontWeight: "600",
+    textAlign: "center",
   },
   emptySubText: {
     fontSize: 13,
+    textAlign: "center",
   },
-  // Modal Styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(7, 13, 24, 0.45)",
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
   },
   modalContent: {
     width: "100%",
-    borderRadius: 20,
+    borderRadius: 24,
     padding: 24,
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.16,
+    shadowRadius: 24,
+    elevation: 8,
   },
   modalHeader: {
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 18,
   },
   modalIconContainer: {
-    width: 64,
-    height: 64,
+    width: 62,
+    height: 62,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
+    marginBottom: 10,
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 4,
+    fontWeight: "800",
+    marginBottom: 3,
+    textAlign: "center",
   },
   modalSubtitle: {
     fontSize: 14,
+    textAlign: "center",
   },
   warningBox: {
     flexDirection: "row",
     alignItems: "center",
     padding: 12,
     borderRadius: 12,
-    marginBottom: 20,
+    marginBottom: 16,
     gap: 10,
     width: "100%",
   },
@@ -374,24 +388,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    padding: 16,
+    padding: 15,
     borderRadius: 12,
     gap: 8,
   },
   actionButtonText: {
     color: "white",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 15,
+    fontWeight: "700",
   },
   cancelButton: {
-    padding: 16,
+    padding: 15,
     borderRadius: 12,
     alignItems: "center",
     borderWidth: 1,
   },
   cancelButtonText: {
-    fontSize: 16,
-    fontWeight: "500",
+    fontSize: 15,
+    fontWeight: "600",
   },
 });
 

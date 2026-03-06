@@ -2,27 +2,26 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
+import { PeriodType } from "../../database/measurementRepository";
 
 interface PeriodTabsProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-  tabs?: string[];
+  activeTab: PeriodType;
+  onTabChange: (tab: PeriodType) => void;
+  tabs?: PeriodType[];
 }
 
 const PeriodTabs = ({
   activeTab,
   onTabChange,
-  tabs = ["Günlük", "Haftalık", "Aylık"],
+  tabs = ["daily", "weekly", "monthly"],
 }: PeriodTabsProps) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
 
-  // Translation mapping for tabs
-  const getTabLabel = (tab: string) => {
-    if (tab === "Günlük" || tab === t('period.daily')) return t('period.daily');
-    if (tab === "Haftalık" || tab === t('period.weekly')) return t('period.weekly');
-    if (tab === "Aylık" || tab === t('period.monthly')) return t('period.monthly');
-    return tab;
+  const getTabLabel = (tab: PeriodType) => {
+    if (tab === "daily") return t("period.daily");
+    if (tab === "weekly") return t("period.weekly");
+    return t("period.monthly");
   };
 
   return (
@@ -45,11 +44,7 @@ const PeriodTabs = ({
         }}
       >
         {tabs.map((tab) => (
-          <Pressable
-            key={tab}
-            onPress={() => onTabChange(tab)}
-            style={{ flex: 1 }}
-          >
+          <Pressable key={tab} onPress={() => onTabChange(tab)} style={{ flex: 1 }}>
             <Text
               style={{
                 textAlign: "center",

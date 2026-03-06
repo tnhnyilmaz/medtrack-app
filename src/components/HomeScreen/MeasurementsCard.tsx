@@ -11,7 +11,6 @@ import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
-import { useLanguage } from "../../contexts/LanguageContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import styles from "../../styles/HomeScreenStyles";
 
@@ -19,7 +18,6 @@ const MeasurementsCard = () => {
   const { colors } = useTheme();
   const router = useRouter();
   const { t } = useTranslation();
-  const { language } = useLanguage();
 
   const [latestBP, setLatestBP] = useState<BloodPressure | null>(null);
   const [latestSugar, setLatestSugar] = useState<BloodSugar | null>(null);
@@ -43,7 +41,6 @@ const MeasurementsCard = () => {
     }, [loadLatestMeasurements])
   );
 
-  // Format relative time
   const formatTimeAgo = (dateString: string): string => {
     const date = new Date(dateString);
     const now = new Date();
@@ -52,81 +49,111 @@ const MeasurementsCard = () => {
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffMins < 1) return t('home.justNow');
-    if (diffMins < 60) return `${diffMins} ${t('home.minutesAgo')}`;
-    if (diffHours < 24) return `${diffHours} ${t('home.hoursAgo')}`;
-    if (diffDays === 1) return t('home.yesterday');
-    return `${diffDays} ${t('home.daysAgo')}`;
+    if (diffMins < 1) return t("home.justNow");
+    if (diffMins < 60) return `${diffMins} ${t("home.minutesAgo")}`;
+    if (diffHours < 24) return `${diffHours} ${t("home.hoursAgo")}`;
+    if (diffDays === 1) return t("home.yesterday");
+    return `${diffDays} ${t("home.daysAgo")}`;
   };
 
   return (
-    <View style={{ gap: 10 }}>
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Text style={[styles.bigText, { color: colors.text, fontSize: 24 }]}>
-          {t('home.latestMeasurements')}
+    <View style={{ gap: 12 }}>
+      <View style={styles.measurementsSectionHeader}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          {t("home.latestMeasurements")}
         </Text>
 
-        <Text style={[{ color: colors.textSecondary }, styles.detailText]}>
-          {t('home.details')}
-        </Text>
+        <Pressable onPress={() => router.push("/(tabs)/reports")}> 
+          <Text style={[styles.sectionLink, { color: colors.primary }]}>
+            {t("home.details")}
+          </Text>
+        </Pressable>
       </View>
+
       <View style={styles.measurementsContainer}>
         <Pressable
           onPress={() => router.push("/bloodPressureScreen")}
           style={[styles.measurementsCard, { backgroundColor: colors.surface }]}
         >
-          <View
-            style={[
-              styles.measurementsIconContainer,
-              { backgroundColor: colors.measurBackRed },
-            ]}
-          >
-            <FontAwesome5
-              name="heartbeat"
-              size={24}
-              color={colors.measurIconRed}
-            />
+          <View style={styles.measurementsIconContainerRow}>
+            <View
+              style={[
+                styles.measurementsIconContainer,
+                { backgroundColor: colors.measurBackRed },
+              ]}
+            >
+              <FontAwesome5
+                name="heartbeat"
+                size={20}
+                color={colors.measurIconRed}
+              />
+            </View>
+            <Entypo name="chevron-right" size={20} color={colors.textSecondary} />
           </View>
-          <Text style={[styles.measurementsTitleText, { color: colors.text }]}>
-            {t('home.bloodPressure')}
-          </Text>
-          <Text style={[styles.measurementsValueText, { color: colors.text }]}>
-            {latestBP ? `${latestBP.systolic}/${latestBP.diastolic}` : "--/--"}
-          </Text>
-          <Text style={{ color: colors.textSecondary }}>
-            {latestBP ? formatTimeAgo(latestBP.measure_time) : t('home.noMeasurement')}
-          </Text>
+
+          <View>
+            <Text style={[styles.measurementsTitleText, { color: colors.textSecondary }]}>
+              {t("home.bloodPressure")}
+            </Text>
+            <View style={styles.measurementValueRow}>
+              <Text style={[styles.measurementsValueText, { color: colors.text }]}> 
+                {latestBP ? `${latestBP.systolic}/${latestBP.diastolic}` : "--/--"}
+              </Text>
+              <Text style={[styles.measurementsUnitText, { color: colors.textSecondary }]}>
+                mmHg
+              </Text>
+            </View>
+          </View>
+
+          <View style={[styles.measurementsTimeBadge, { backgroundColor: `${colors.measurIconRed}15` }]}>
+            <Text style={[styles.measurementsTimeText, { color: colors.measurIconRed }]}>
+              {latestBP ? formatTimeAgo(latestBP.measure_time) : t("home.noMeasurement")}
+            </Text>
+          </View>
         </Pressable>
 
         <Pressable
           onPress={() => router.push("/sugarMeasurementsScreen")}
           style={[styles.measurementsCard, { backgroundColor: colors.surface }]}
         >
+          <View style={styles.measurementsIconContainerRow}>
+            <View
+              style={[
+                styles.measurementsIconContainer,
+                { backgroundColor: colors.measurBackOrange },
+              ]}
+            >
+              <Entypo name="drop" size={20} color={colors.measurIconORange} />
+            </View>
+            <Entypo name="chevron-right" size={20} color={colors.textSecondary} />
+          </View>
+
+          <View>
+            <Text style={[styles.measurementsTitleText, { color: colors.textSecondary }]}>
+              {t("home.sugar")}
+            </Text>
+            <View style={styles.measurementValueRow}>
+              <Text style={[styles.measurementsValueText, { color: colors.text }]}> 
+                {latestSugar ? `${latestSugar.level}` : "--"}
+              </Text>
+              <Text style={[styles.measurementsUnitText, { color: colors.textSecondary }]}>
+                mg/dL
+              </Text>
+            </View>
+          </View>
+
           <View
             style={[
-              styles.measurementsIconContainer,
-              { backgroundColor: colors.measurBackOrange },
+              styles.measurementsTimeBadge,
+              { backgroundColor: `${colors.measurIconORange}15` },
             ]}
           >
-            <Entypo name="drop" size={24} color={colors.measurIconORange} />
+            <Text style={[styles.measurementsTimeText, { color: colors.measurIconORange }]}> 
+              {latestSugar
+                ? formatTimeAgo(latestSugar.measure_time)
+                : t("home.noMeasurement")}
+            </Text>
           </View>
-          <Text style={[styles.measurementsTitleText, { color: colors.text }]}>
-            {t('home.sugar')}
-          </Text>
-          <Text style={[styles.measurementsValueText, { color: colors.text }]}>
-            {latestSugar ? `${latestSugar.level}` : "--"}
-          </Text>
-          <Text style={{ color: colors.textSecondary }}>
-            {latestSugar
-              ? formatTimeAgo(latestSugar.measure_time)
-              : t('home.noMeasurement')}
-          </Text>
         </Pressable>
       </View>
     </View>

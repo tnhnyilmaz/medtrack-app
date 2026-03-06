@@ -1,5 +1,5 @@
 import { useFocusEffect } from "@react-navigation/native";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -15,6 +15,7 @@ import BloodCard from "../components/BloodPressureScreen/BloodCard";
 import DateSelection from "../components/BloodPressureScreen/DateSelection";
 import TopBar from "../components/BloodPressureScreen/TopBar";
 import PeriodTabs from "../components/shared/PeriodTabs";
+import { useLanguage } from "../contexts/LanguageContext";
 import { useTheme } from "../contexts/ThemeContext";
 import {
   addBloodPressure,
@@ -25,32 +26,79 @@ import {
 } from "../database/measurementRepository";
 import styles from "../styles/BloodPressureStyle";
 
-// Helper function to calculate blood pressure status
-const calculateStatus = (systolic: number, diastolic: number, t: any): string => {
+type BloodPressureStatus = "low" | "normal" | "elevated" | "high";
+
+const getBloodPressureStatus = (
+  systolic: number,
+  diastolic: number
+): BloodPressureStatus => {
   if (systolic < 90 || diastolic < 60) {
-    return t('bloodPressure.statusLow');
-  } else if (systolic >= 140 || diastolic >= 90) {
-    return t('bloodPressure.statusHigh');
-  } else if (systolic >= 120 || diastolic >= 80) {
-    return t('bloodPressure.statusElevated');
+    return "low";
   }
-  return t('bloodPressure.statusNormal');
+
+  if (systolic >= 140 || diastolic >= 90) {
+    return "high";
+  }
+
+  if (systolic >= 120 || diastolic >= 80) {
+    return "elevated";
+  }
+
+  return "normal";
 };
 
-// Helper function to format measure_time to display date and time
-const formatTime = (measureTime: string): string => {
-  try {
-    const date = new Date(measureTime);
-    return date.toLocaleString("tr-TR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
+const formatDisplayTime = (measureTime: string, locale: string): string => {
+  const date = new Date(measureTime);
+
+  if (Number.isNaN(date.getTime())) {
+    return measureTime;
+  }
+
+  return date.toLocaleString(locale, {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const formatChartLabel = (
+  measureTime: string,
+  period: PeriodType,
+  locale: string
+): string => {
+  const date = new Date(measureTime);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  if (period === "daily") {
+    return date.toLocaleTimeString(locale, {
       hour: "2-digit",
       minute: "2-digit",
     });
-  } catch {
-    return measureTime;
   }
+
+  if (period === "weekly") {
+    return date.toLocaleDateString(locale, {
+      weekday: "short",
+      day: "2-digit",
+    });
+  }
+
+  return date.toLocaleDateString(locale, {
+    day: "2-digit",
+    month: "2-digit",
+  });
+};
+
+const getVisibleLabelEvery = (length: number) => {
+  if (length <= 8) return 1;
+  if (length <= 16) return 2;
+  if (length <= 30) return 3;
+  return 4;
 };
 
 interface BloodCardData {
@@ -59,7 +107,8 @@ interface BloodCardData {
   diastolic: number;
   pulse?: number;
   time: string;
-  status: string;
+  measureTime: string;
+  status: BloodPressureStatus;
   note: string;
 }
 
@@ -72,63 +121,64 @@ const BloodPressureScreen = ({
 }: BloodPressureScreenProps) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const { language } = useLanguage();
+  const locale = language === "tr" ? "tr-TR" : "en-US";
+
   const [modalVisible, setModalVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState<PeriodType>("Günlük");
+  const [activeTab, setActiveTab] = useState<PeriodType>("daily");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [bloodPressures, setBloodPressures] = useState<BloodCardData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Auto-open modal if requested
   useEffect(() => {
-    if (autoOpenModal) {
-      // Small delay to ensure screen is fully loaded
-      const timer = setTimeout(() => {
-        setModalVisible(true);
-      }, 300);
-      return () => clearTimeout(timer);
+    if (!autoOpenModal) {
+      return;
     }
+
+    const timer = setTimeout(() => {
+      setModalVisible(true);
+    }, 300);
+
+    return () => clearTimeout(timer);
   }, [autoOpenModal]);
 
-  // Fetch blood pressures from database based on selected period
   const fetchBloodPressures = useCallback(async () => {
     try {
       setLoading(true);
-      let data;
-      if (activeTab === "Günlük") {
-        data = await getBloodPressuresByDate(selectedDate);
-      } else {
-        data = await getBloodPressuresByPeriod(activeTab);
-      }
-      // Map database records to BloodCard format
+      const data =
+        activeTab === "daily"
+          ? await getBloodPressuresByDate(selectedDate)
+          : await getBloodPressuresByPeriod(activeTab);
+
       const formattedData: BloodCardData[] = data.map((bp: BloodPressure) => ({
-        id: bp.id || 0,
+        id: bp.id ?? Date.parse(bp.measure_time),
         systolic: bp.systolic,
         diastolic: bp.diastolic,
         pulse: bp.pulse,
-        time: formatTime(bp.measure_time),
-        status: calculateStatus(bp.systolic, bp.diastolic, t),
+        time: formatDisplayTime(bp.measure_time, locale),
+        measureTime: bp.measure_time,
+        status: getBloodPressureStatus(bp.systolic, bp.diastolic),
         note: bp.note || "",
       }));
+
       setBloodPressures(formattedData);
     } catch (error) {
       console.error("Error fetching blood pressures:", error);
     } finally {
       setLoading(false);
     }
-  }, [activeTab, selectedDate]);
+  }, [activeTab, locale, selectedDate]);
 
-  // Reload data when screen gains focus or when activeTab changes
   useFocusEffect(
     useCallback(() => {
       fetchBloodPressures();
     }, [fetchBloodPressures])
   );
 
-  // Handle saving new blood pressure measurement
   const handleSave = async (data: {
     systolic: number;
     diastolic: number;
-    pulse: number;
+    pulse?: number;
     time: string;
     note: string;
   }) => {
@@ -136,55 +186,111 @@ const BloodPressureScreen = ({
       await addBloodPressure({
         systolic: data.systolic,
         diastolic: data.diastolic,
-        pulse: data.pulse || undefined,
-        measure_time: new Date().toISOString(),
+        pulse: data.pulse,
+        measure_time: data.time,
         note: data.note,
       });
-      // Refresh the list after saving
+
       await fetchBloodPressures();
     } catch (error) {
       console.error("Error saving blood pressure:", error);
     }
   };
 
-  // Handle tab change
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab as PeriodType);
-  };
+  const chronologicalData = useMemo(
+    () => [...bloodPressures].reverse(),
+    [bloodPressures]
+  );
 
-  // Prepare data for the chart (reverse for chronological order)
-  const chartData = [...bloodPressures].reverse();
-  const chartDataSystolic = chartData.map((item) => ({
-    value: item.systolic,
-    label: new Date(item.time.split(" ")[0].split(".").reverse().join("-")).getDate().toString(),
-    dataPointText: item.systolic.toString(),
-  }));
-  const chartDataDiastolic = chartData.map((item) => ({
-    value: item.diastolic,
-    dataPointText: item.diastolic.toString(),
-  }));
+  const visibleLabelEvery = getVisibleLabelEvery(chronologicalData.length);
+
+  const chartDataSystolic = useMemo(
+    () =>
+      chronologicalData.map((item, index) => {
+        const shouldRenderLabel =
+          index % visibleLabelEvery === 0 || index === chronologicalData.length - 1;
+
+        return {
+          value: item.systolic,
+          label: shouldRenderLabel
+            ? formatChartLabel(item.measureTime, activeTab, locale)
+            : "",
+          dataPointText: item.systolic.toString(),
+        };
+      }),
+    [activeTab, chronologicalData, locale, visibleLabelEvery]
+  );
+
+  const chartDataDiastolic = useMemo(
+    () =>
+      chronologicalData.map((item) => ({
+        value: item.diastolic,
+        dataPointText: item.diastolic.toString(),
+      })),
+    [chronologicalData]
+  );
+
+  const chartSpacing =
+    chronologicalData.length <= 6 ? 44 : chronologicalData.length <= 12 ? 30 : 22;
+
+  const summary = useMemo(() => {
+    if (bloodPressures.length === 0) {
+      return null;
+    }
+
+    const systolicValues = bloodPressures.map((item) => item.systolic);
+    const diastolicValues = bloodPressures.map((item) => item.diastolic);
+
+    const avgSystolic = Math.round(
+      systolicValues.reduce((sum, value) => sum + value, 0) / systolicValues.length
+    );
+    const avgDiastolic = Math.round(
+      diastolicValues.reduce((sum, value) => sum + value, 0) / diastolicValues.length
+    );
+
+    const maxSystolic = Math.max(...systolicValues);
+    const minDiastolic = Math.min(...diastolicValues);
+
+    const oldest = chronologicalData[0];
+    const latest = chronologicalData[chronologicalData.length - 1];
+    const trendDelta = latest.systolic - oldest.systolic;
+
+    const trendKey =
+      Math.abs(trendDelta) < 3
+        ? "stable"
+        : trendDelta > 0
+          ? "up"
+          : "down";
+
+    return {
+      avgSystolic,
+      avgDiastolic,
+      maxSystolic,
+      minDiastolic,
+      trendDelta,
+      trendKey,
+      count: bloodPressures.length,
+    };
+  }, [bloodPressures, chronologicalData]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={styles.container}>
         <TopBar />
-        <PeriodTabs activeTab={activeTab} onTabChange={handleTabChange} />
-        {activeTab === "Günlük" && (
-          <DateSelection
-            date={selectedDate}
-            onDateChange={setSelectedDate}
-          />
+        <PeriodTabs activeTab={activeTab} onTabChange={setActiveTab} />
+
+        {activeTab === "daily" && (
+          <DateSelection date={selectedDate} onDateChange={setSelectedDate} />
         )}
-        <View
-          style={{ height: 200, paddingVertical: 10, paddingHorizontal: 0 }}
-        >
+
+        <View style={{ height: 220, paddingVertical: 10, paddingHorizontal: 0 }}>
           {bloodPressures.length > 0 ? (
             <LineChart
               data={chartDataSystolic}
               data2={chartDataDiastolic}
-              height={160}
+              height={170}
               showVerticalLines
-              spacing={44}
+              spacing={chartSpacing}
               initialSpacing={20}
               color1={colors.error || "red"}
               color2={colors.primary || "blue"}
@@ -214,11 +320,11 @@ const BloodPressureScreen = ({
               startFillColor1={colors.error || "red"}
               endFillColor1={colors.error || "red"}
               startOpacity1={0.2}
-              endOpacity1={0.0}
+              endOpacity1={0}
               startFillColor2={colors.primary || "blue"}
               endFillColor2={colors.primary || "blue"}
               startOpacity2={0.2}
-              endOpacity2={0.0}
+              endOpacity2={0}
             />
           ) : (
             <View
@@ -229,15 +335,103 @@ const BloodPressureScreen = ({
               }}
             >
               <Text style={{ color: colors.textSecondary }}>
-                {loading ? "" : t('bloodPressure.noDataInChart')}
+                {loading ? "" : t("bloodPressure.noDataInChart")}
               </Text>
             </View>
           )}
         </View>
+
+        {summary && (
+          <View style={{ marginBottom: 10, gap: 8 }}>
+            <View style={{ flexDirection: "row", gap: 14 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <View
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 5,
+                    backgroundColor: colors.error || "red",
+                  }}
+                />
+                <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                  {t("bloodPressure.legendSystolic")}
+                </Text>
+              </View>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <View
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 5,
+                    backgroundColor: colors.primary || "blue",
+                  }}
+                />
+                <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                  {t("bloodPressure.legendDiastolic")}
+                </Text>
+              </View>
+            </View>
+
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: colors.surface,
+                  borderRadius: 10,
+                  padding: 10,
+                }}
+              >
+                <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                  {t("bloodPressure.analysisAverage")}
+                </Text>
+                <Text style={{ color: colors.text, fontWeight: "700", marginTop: 4 }}>
+                  {summary.avgSystolic}/{summary.avgDiastolic}
+                </Text>
+              </View>
+
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: colors.surface,
+                  borderRadius: 10,
+                  padding: 10,
+                }}
+              >
+                <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                  {t("bloodPressure.analysisPeak")}
+                </Text>
+                <Text style={{ color: colors.text, fontWeight: "700", marginTop: 4 }}>
+                  {summary.maxSystolic}/{summary.minDiastolic}
+                </Text>
+              </View>
+
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: colors.surface,
+                  borderRadius: 10,
+                  padding: 10,
+                }}
+              >
+                <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                  {t("bloodPressure.analysisCount")}
+                </Text>
+                <Text style={{ color: colors.text, fontWeight: "700", marginTop: 4 }}>
+                  {summary.count}
+                </Text>
+              </View>
+            </View>
+
+            <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+              {t(`bloodPressure.trend.${summary.trendKey}`, {
+                delta: Math.abs(summary.trendDelta),
+              })}
+            </Text>
+          </View>
+        )}
+
         {loading ? (
-          <View
-            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-          >
+          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
             <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : (
@@ -257,23 +451,22 @@ const BloodPressureScreen = ({
                 }}
               >
                 <Text style={{ color: colors.textSecondary }}>
-                  {t('bloodPressure.noMeasurementsInPeriod')}
+                  {t("bloodPressure.noMeasurementsInPeriod")}
                 </Text>
               </View>
             }
           />
         )}
       </View>
-      <TouchableOpacity
-        style={{ padding: 15 }}
-        onPress={() => setModalVisible(true)}
-      >
+
+      <TouchableOpacity style={{ padding: 15 }} onPress={() => setModalVisible(true)}>
         <View style={[styles.addBtn, { backgroundColor: colors.iconGreen }]}>
           <Text style={[styles.addBtnText, { color: "#fff" }]}>
-            {t('bloodPressure.addButton')}
+            {t("bloodPressure.addButton")}
           </Text>
         </View>
       </TouchableOpacity>
+
       <AddMeasurementModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}

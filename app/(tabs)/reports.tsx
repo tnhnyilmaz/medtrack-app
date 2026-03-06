@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../src/contexts/ThemeContext";
 
 export default function ReportsScreen() {
@@ -28,7 +29,10 @@ export default function ReportsScreen() {
   ];
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      edges={["top"]}
+    >
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>{t('reports.title')}</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
@@ -70,7 +74,7 @@ export default function ReportsScreen() {
           </TouchableOpacity>
         ))}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -80,7 +84,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   header: {
-    paddingTop: 40,
+    paddingTop: 12,
     marginBottom: 30,
   },
   title: {

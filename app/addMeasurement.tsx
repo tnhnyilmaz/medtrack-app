@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../src/contexts/ThemeContext";
 
 export default function AddMeasurementScreen() {
@@ -26,7 +27,7 @@ export default function AddMeasurementScreen() {
   ];
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.closeButton}
@@ -72,7 +73,7 @@ export default function AddMeasurementScreen() {
           ))}
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -84,7 +85,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingTop: 50,
+    paddingTop: 12,
     paddingHorizontal: 20,
     paddingBottom: 20,
   },

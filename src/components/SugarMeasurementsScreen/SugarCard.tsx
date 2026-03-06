@@ -1,18 +1,21 @@
 import { useTheme } from "@/src/contexts/ThemeContext";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 import styles from "../../styles/SugarMeasurementsStyle";
+
+type SugarType = "fasting" | "postprandial";
+type SugarStatus = "low" | "normal" | "high" | "veryHigh";
 
 interface SugarDataProps {
   id: string | number;
   level: number;
   time: string;
-  status: string;
+  status: SugarStatus;
   note: string;
-  type: string; // Açlık/Tokluk
+  type: SugarType;
 }
 
 const SugarCard = ({ data }: { data: SugarDataProps }) => {
@@ -20,50 +23,51 @@ const SugarCard = ({ data }: { data: SugarDataProps }) => {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
-  // Translate type display
-  const getTypeDisplay = (type: string) => {
-    if (type === "Açlık" || type === t('sugar.fasting')) return t('sugar.fasting');
-    if (type === "Tokluk" || type === t('sugar.postprandial')) return t('sugar.postprandial');
-    return type;
-  };
-
-  const getStatusStyle = (status: string) => {
+  const statusStyle = useMemo(() => {
     const errorColor = colors.error || "#FF3B30";
     const warningColor = colors.warning || "#FF9500";
     const successColor = colors.success || "#34C759";
     const defaultColor = colors.textSecondary || "#8E8E93";
 
-    // Check both Turkish and English status texts
-    const isHigh = status === "Yüksek" || status === "Çok Yüksek" ||
-      status === t('sugar.statusHigh') || status === t('sugar.statusVeryHigh');
-    const isLow = status === "Düşük" || status === t('sugar.statusLow');
-    const isNormal = status === "Normal" || status === t('sugar.statusNormal');
-
-    if (isHigh) {
+    if (data.status === "high" || data.status === "veryHigh") {
       return {
         color: errorColor,
         backgroundColor: `${errorColor}20`,
       };
     }
-    if (isLow) {
+
+    if (data.status === "low") {
       return {
         color: warningColor,
         backgroundColor: `${warningColor}20`,
       };
     }
-    if (isNormal) {
+
+    if (data.status === "normal") {
       return {
         color: successColor,
         backgroundColor: `${successColor}20`,
       };
     }
+
     return {
       color: defaultColor,
       backgroundColor: `${defaultColor}20`,
     };
+  }, [colors.error, colors.success, colors.textSecondary, colors.warning, data.status]);
+
+  const getTypeLabel = (type: SugarType) => {
+    if (type === "fasting") return t("sugar.fasting");
+    return t("sugar.postprandial");
   };
 
-  const statusStyle = getStatusStyle(data.status);
+  const getStatusLabel = (status: SugarStatus) => {
+    if (status === "low") return t("sugar.statusLow");
+    if (status === "high") return t("sugar.statusHigh");
+    if (status === "veryHigh") return t("sugar.statusVeryHigh");
+    return t("sugar.statusNormal");
+  };
+
   return (
     <View
       style={[
@@ -86,22 +90,19 @@ const SugarCard = ({ data }: { data: SugarDataProps }) => {
           <View
             style={[
               styles.iconContainer,
-              { backgroundColor: colors.measurBackRed }, // Or maybe a different color for sugar?
+              { backgroundColor: colors.measurBackOrange },
             ]}
           >
-            <FontAwesome5
-              name="tint" // Using tint (drop) icon for blood sugar
-              size={24}
-              color={colors.measurIconRed}
-            />
+            <FontAwesome5 name="tint" size={24} color={colors.measurIconORange} />
           </View>
+
           <View>
             <Text style={[styles.sugarText, { color: colors.text }]}>
               {data.level} mg/dL
             </Text>
-            <View style={[styles.row, { gap: 10 }]}>
+            <View style={[styles.row, { gap: 10, flexWrap: "wrap" }]}>
               <Text style={{ color: colors.textSecondary || "gray" }}>
-                {data.time} - {getTypeDisplay(data.type)}
+                {data.time} - {getTypeLabel(data.type)}
               </Text>
               <View
                 style={{
@@ -118,17 +119,14 @@ const SugarCard = ({ data }: { data: SugarDataProps }) => {
                     fontSize: 12,
                   }}
                 >
-                  {data.status}
+                  {getStatusLabel(data.status)}
                 </Text>
               </View>
             </View>
           </View>
         </View>
 
-        <Pressable
-          onPress={() => setExpanded(!expanded)}
-          style={{ padding: 5 }}
-        >
+        <Pressable onPress={() => setExpanded((previous) => !previous)} style={{ padding: 5 }}>
           <Entypo
             name={expanded ? "chevron-small-up" : "chevron-small-down"}
             size={24}
@@ -146,18 +144,11 @@ const SugarCard = ({ data }: { data: SugarDataProps }) => {
             borderTopColor: colors.border || "#eee",
           }}
         >
-          <Text
-            style={{ fontWeight: "bold", color: colors.text, marginBottom: 2 }}
-          >
-            {t('sugar.note')}:
+          <Text style={{ fontWeight: "bold", color: colors.text, marginBottom: 2 }}>
+            {t("sugar.note")}
           </Text>
-          <Text
-            style={{
-              color: colors.textSecondary || "gray",
-              fontStyle: "italic",
-            }}
-          >
-            {data.note}
+          <Text style={{ color: colors.textSecondary || "gray", fontStyle: "italic" }}>
+            {data.note || t("sugar.noNote")}
           </Text>
         </View>
       )}

@@ -1,119 +1,282 @@
 import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
-    imgContainer: {
-        width: 75,
-        height: 75,
-        borderRadius: 70,
-        overflow: 'hidden'
-    },
-    img: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 70
-    },
-    container: {
-        flex: 1,
-        padding: 20
-    },
-    header: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingTop: 20,
-        gap: 10,
-        width: "100%",
-    },
-    bigText: {
-        fontSize: 28,
-        fontWeight: "bold",
-    },
-    mediumText: {
-        fontSize: 14,
-        color: '#8E8E93',
-        marginTop: 5,
-    },
-    medContainer: {
-        width: '100%',
-        marginTop: 20,
-        padding: 10,
-        borderRadius: 10,
-        paddingVertical: 15,
-        paddingHorizontal: 15
-    },
-    contextTitle: {
-        fontSize: 12,
-        marginTop: 5,
-        fontWeight: '700'
-    },
-    subContextTitle: {
-        fontSize: 14,
-    },
-    medCheckContainer: {
-        width: 50,
-        height: 50,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 10,
-    },
-    checkboxContainer: {
-        width: 16,
-        height: 16,
-        borderRadius: 4,
-        borderWidth: 2,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    checkboxChecked: {
-        backgroundColor: '#007AFF',
-        borderColor: '#007AFF',
-    },
-    checkboxUnchecked: {
-        backgroundColor: 'transparent',
-        borderColor: '#C7C7CC',
-    },
-    addBtn: {
-        width: "100%",
-        height: 50,
-        borderRadius: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'row',
+  container: {
+    flex: 1,
+  },
+  scrollContent: {
+    gap: 18,
+    paddingHorizontal: 18,
+    paddingTop: 16,
+    paddingBottom: 28,
+  },
+  ambientLayer: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  ambientCircleTop: {
+    position: "absolute",
+    top: -110,
+    right: -90,
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+  },
+  ambientCircleBottom: {
+    position: "absolute",
+    bottom: 120,
+    left: -120,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+  },
 
-    },
-    addBtnText: {
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    measurementsContainer: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
-    measurementsCard: {
-        width: "49%",
-        height: 200,
-        borderRadius: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#ffffffff',
-    },
-    measurementsIconContainer: {
-        width: 50,
-        height: 50,
-        borderRadius: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 10,
-    },
-    measurementsTitleText: {
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    measurementsValueText: {
-        fontSize: 32,
-        fontWeight: '700',
-    },
-    detailText: {
-        fontSize: 14,
-        fontStyle: 'italic',
-        fontWeight: '500',
-    },
+  headerCard: {
+    borderRadius: 28,
+    padding: 16,
+    backgroundColor: "rgba(34, 197, 94, 0.2)",
+    shadowColor: "#15cf3d",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 8,
+    gap: 12,
+    overflow: "hidden",
+  },
+  headerOrbLarge: {
+    position: "absolute",
+    top: -44,
+    right: -40,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+  },
+  headerOrbSmall: {
+    position: "absolute",
+    bottom: -36,
+    left: -24,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  headerContent: {
+    gap: 12,
+  },
+  headerMainRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+  },
+  avatarButton: {
+    width: 58,
+    height: 58,
+    borderRadius: 16,
+    overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "rgba(34, 197, 94, 0.4)",
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+  },
+  avatarFallback: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerIdentity: {
+    flex: 1,
+    gap: 2,
+  },
+  headerActionButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 15,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  dateBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 22,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+  },
+  dateDayBadge: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  dateIconBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  dateDayText: {
+    fontSize: 21,
+    fontWeight: "800",
+    letterSpacing: -0.4,
+  },
+  dateBannerContent: {
+    flex: 1,
+    marginRight: 8,
+  },
+  dateTagText: {
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
+    marginBottom: 1,
+  },
+  dateWeekdayText: {
+    fontSize: 16,
+    fontWeight: "700",
+    letterSpacing: -0.1,
+  },
+  dateFullText: {
+    fontSize: 12,
+    fontWeight: "500",
+    marginTop: 2,
+  },
+  helloText: {
+    fontSize: 13,
+    fontWeight: "600",
+    letterSpacing: 0.15,
+  },
+  nameText: {
+    fontSize: 24,
+    fontWeight: "800",
+    lineHeight: 30,
+    letterSpacing: -0.2,
+  },
+  datePill: {
+    flexDirection: "row",
+    alignItems: "center",
+    display: "none",
+  },
+  datePillText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
 
+  addBtn: {
+    width: "100%",
+    borderRadius: 18,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    elevation: 4,
+  },
+  addBtnLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  addBtnIconWrap: {
+    width: 30,
+    height: 30,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  addBtnText: {
+    fontSize: 15,
+    fontWeight: "700",
+    letterSpacing: 0.1,
+  },
+
+  measurementsSectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 2,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    letterSpacing: -0.2,
+  },
+  sectionLink: {
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  measurementsContainer: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  measurementsCard: {
+    flex: 1,
+    minHeight: 172,
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    justifyContent: "space-between",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  measurementsIconContainerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  measurementsIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  measurementValueRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 4,
+    marginTop: 4,
+  },
+  measurementsTitleText: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  measurementsValueText: {
+    fontSize: 30,
+    fontWeight: "800",
+    letterSpacing: -0.6,
+  },
+  measurementsUnitText: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  measurementsTimeBadge: {
+    alignSelf: "flex-start",
+    borderRadius: 999,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+  },
+  measurementsTimeText: {
+    fontSize: 11,
+    fontWeight: "600",
+  },
+
+  detailText: {
+    fontSize: 13,
+    fontWeight: "700",
+  },
 });

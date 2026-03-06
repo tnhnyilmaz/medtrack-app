@@ -69,7 +69,27 @@
         "statusLow": "Low",
         "statusNormal": "Normal",
         "statusElevated": "Elevated",
-        "statusHigh": "High"
+        "statusHigh": "High",
+        "customDate": "Date",
+        "customHour": "Hour",
+        "noNote": "No note",
+        "legendSystolic": "Systolic",
+        "legendDiastolic": "Diastolic",
+        "analysisAverage": "Average",
+        "analysisPeak": "Peak/Min",
+        "analysisCount": "Records",
+        "trend": {
+            "up": "Systolic trend is rising (+{{delta}} mmHg).",
+            "down": "Systolic trend is falling (-{{delta}} mmHg).",
+            "stable": "Systolic trend is stable ({{delta}} mmHg change)."
+        },
+        "errors": {
+            "requiredFields": "Enter valid systolic and diastolic values.",
+            "invalidSystolic": "Systolic value should be between 60 and 260.",
+            "invalidDiastolic": "Diastolic value should be between 40 and 150.",
+            "diastolicMustBeLower": "Diastolic value must be lower than systolic.",
+            "invalidPulse": "Pulse value should be between 30 and 220."
+        }
     },
     "sugar": {
         "title": "Sugar",
@@ -90,7 +110,23 @@
         "statusLow": "Low",
         "statusNormal": "Normal",
         "statusHigh": "High",
-        "statusVeryHigh": "Very High"
+        "statusVeryHigh": "Very High",
+        "customDate": "Date",
+        "customHour": "Hour",
+        "noNote": "No note",
+        "legendLevel": "Glucose level",
+        "analysisAverage": "Average",
+        "analysisRange": "Min/Max",
+        "analysisNormalRate": "In range",
+        "trend": {
+            "up": "Trend is rising (+{{delta}} mg/dL over {{count}} records).",
+            "down": "Trend is falling (-{{delta}} mg/dL over {{count}} records).",
+            "stable": "Trend is stable ({{delta}} mg/dL change over {{count}} records)."
+        },
+        "errors": {
+            "requiredLevel": "Enter a valid glucose value.",
+            "invalidLevel": "Glucose value should be between 20 and 600."
+        }
     },
     "period": {
         "daily": "Daily",

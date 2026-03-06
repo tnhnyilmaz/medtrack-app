@@ -1,4 +1,7 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -15,10 +18,19 @@ import {
 } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
 
+type SugarType = "fasting" | "postprandial";
+
+interface SugarMeasurementFormData {
+  level: number;
+  type: SugarType;
+  time: string;
+  note: string;
+}
+
 interface AddSugarMeasurementModalProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (data: any) => void;
+  onSave: (data: SugarMeasurementFormData) => void;
 }
 
 const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
@@ -28,48 +40,115 @@ const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
 }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const [measurementTime, setMeasurementTime] = useState<"Now" | "Custom">(
-    "Now"
+  const [measurementTime, setMeasurementTime] = useState<"now" | "custom">(
+    "now"
   );
   const [sugarLevel, setSugarLevel] = useState("");
-  const [measurementType, setMeasurementType] = useState<"Açlık" | "Tokluk">(
-    "Açlık"
-  );
+  const [measurementType, setMeasurementType] = useState<SugarType>("fasting");
   const [note, setNote] = useState("");
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [customDateTime, setCustomDateTime] = useState(new Date());
+  const [pickerMode, setPickerMode] = useState<"date" | "time" | null>(null);
 
-  const handleSave = () => {
-    const data = {
-      level: Number(sugarLevel),
-      type: measurementType,
-      time:
-        measurementTime === "Now"
-          ? new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })
-          : "Custom",
-      note,
-    };
-    onSave(data);
+  const resetForm = () => {
+    setSugarLevel("");
+    setMeasurementType("fasting");
+    setNote("");
+    setValidationError(null);
+    setMeasurementTime("now");
+    setCustomDateTime(new Date());
+    setPickerMode(null);
+  };
+
+  const closeModal = () => {
     onClose();
     resetForm();
   };
 
-  const resetForm = () => {
-    setSugarLevel("");
-    setMeasurementType("Açlık");
-    setNote("");
-    setMeasurementTime("Now");
+  const formatDate = (value: Date) =>
+    value.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+
+  const formatClock = (value: Date) =>
+    value.toLocaleTimeString(undefined, {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+  const handlePickerChange = (
+    event: DateTimePickerEvent,
+    selectedDate?: Date
+  ) => {
+    const activeMode = pickerMode;
+
+    if (Platform.OS === "android") {
+      setPickerMode(null);
+    }
+
+    if (event.type === "dismissed" || !selectedDate || !activeMode) {
+      return;
+    }
+
+    setCustomDateTime((current) => {
+      const next = new Date(current);
+
+      if (activeMode === "date") {
+        next.setFullYear(
+          selectedDate.getFullYear(),
+          selectedDate.getMonth(),
+          selectedDate.getDate()
+        );
+      } else {
+        next.setHours(selectedDate.getHours(), selectedDate.getMinutes(), 0, 0);
+      }
+
+      return next;
+    });
+
+    if (Platform.OS === "ios") {
+      setPickerMode(null);
+    }
+  };
+
+  const handleSave = () => {
+    const parsedLevel = Number.parseInt(sugarLevel, 10);
+
+    if (!Number.isFinite(parsedLevel)) {
+      setValidationError(t("sugar.errors.requiredLevel"));
+      return;
+    }
+
+    if (parsedLevel < 20 || parsedLevel > 600) {
+      setValidationError(t("sugar.errors.invalidLevel"));
+      return;
+    }
+
+    setValidationError(null);
+
+    const timestamp =
+      measurementTime === "now" ? new Date().toISOString() : customDateTime.toISOString();
+
+    onSave({
+      level: parsedLevel,
+      type: measurementType,
+      time: timestamp,
+      note: note.trim(),
+    });
+
+    closeModal();
   };
 
   return (
     <Modal
       animationType="slide"
-      transparent={true}
+      transparent
       visible={visible}
-      onRequestClose={onClose}
+      onRequestClose={closeModal}
     >
-      <TouchableWithoutFeedback onPress={onClose}>
+      <TouchableWithoutFeedback onPress={closeModal}>
         <View style={localStyles.overlay}>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <KeyboardAvoidingView
@@ -82,22 +161,18 @@ const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
                   { backgroundColor: colors.surface },
                 ]}
               >
-                {/* Header */}
                 <View style={localStyles.header}>
-                  <Pressable onPress={onClose} style={localStyles.closeButton}>
+                  <Pressable onPress={closeModal} style={localStyles.closeButton}>
                     <AntDesign name="close" size={24} color={colors.text} />
                   </Pressable>
                   <Text style={[localStyles.title, { color: colors.text }]}>
-                    {t('sugar.addTitle')}
+                    {t("sugar.addTitle")}
                   </Text>
                   <View style={{ width: 24 }} />
                 </View>
 
-                {/* Measurement Time Toggle */}
-                <Text
-                  style={[localStyles.label, { color: colors.textSecondary }]}
-                >
-                  {t('sugar.measurementTime')}
+                <Text style={[localStyles.label, { color: colors.textSecondary }]}>
+                  {t("sugar.measurementTime")}
                 </Text>
                 <View
                   style={[
@@ -108,7 +183,7 @@ const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
                   <Pressable
                     style={[
                       localStyles.toggleButton,
-                      measurementTime === "Now" && {
+                      measurementTime === "now" && {
                         backgroundColor: colors.surface,
                         shadowColor: "#000",
                         shadowOpacity: 0.1,
@@ -116,23 +191,23 @@ const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
                         elevation: 2,
                       },
                     ]}
-                    onPress={() => setMeasurementTime("Now")}
+                    onPress={() => setMeasurementTime("now")}
                   >
                     <Text
                       style={{
                         color:
-                          measurementTime === "Now"
+                          measurementTime === "now"
                             ? colors.text
                             : colors.textSecondary,
                       }}
                     >
-                      {t('sugar.now')}
+                      {t("sugar.now")}
                     </Text>
                   </Pressable>
                   <Pressable
                     style={[
                       localStyles.toggleButton,
-                      measurementTime === "Custom" && {
+                      measurementTime === "custom" && {
                         backgroundColor: colors.surface,
                         shadowColor: "#000",
                         shadowOpacity: 0.1,
@@ -140,53 +215,76 @@ const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
                         elevation: 2,
                       },
                     ]}
-                    onPress={() => setMeasurementTime("Custom")}
+                    onPress={() => setMeasurementTime("custom")}
                   >
                     <Text
                       style={{
                         color:
-                          measurementTime === "Custom"
+                          measurementTime === "custom"
                             ? colors.text
                             : colors.textSecondary,
                       }}
                     >
-                      {t('sugar.custom')}
+                      {t("sugar.custom")}
                     </Text>
                   </Pressable>
                 </View>
 
-                {/* Sugar Level */}
+                {measurementTime === "custom" && (
+                  <View style={localStyles.customTimeContainer}>
+                    <Pressable
+                      onPress={() => setPickerMode("date")}
+                      style={[
+                        localStyles.customTimeButton,
+                        { borderColor: colors.border, backgroundColor: colors.background },
+                      ]}
+                    >
+                      <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                        {t("sugar.customDate")}
+                      </Text>
+                      <Text style={{ color: colors.text, fontWeight: "600" }}>
+                        {formatDate(customDateTime)}
+                      </Text>
+                    </Pressable>
+
+                    <Pressable
+                      onPress={() => setPickerMode("time")}
+                      style={[
+                        localStyles.customTimeButton,
+                        { borderColor: colors.border, backgroundColor: colors.background },
+                      ]}
+                    >
+                      <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                        {t("sugar.customHour")}
+                      </Text>
+                      <Text style={{ color: colors.text, fontWeight: "600" }}>
+                        {formatClock(customDateTime)}
+                      </Text>
+                    </Pressable>
+                  </View>
+                )}
+
                 <View style={localStyles.inputGroup}>
-                  <Text
-                    style={[localStyles.label, { color: colors.textSecondary }]}
-                  >
-                    {t('sugar.sugarLevel')}
+                  <Text style={[localStyles.label, { color: colors.textSecondary }]}>
+                    {t("sugar.sugarLevel")}
                   </Text>
                   <View
-                    style={[
-                      localStyles.inputWrapper,
-                      { borderColor: colors.border },
-                    ]}
+                    style={[localStyles.inputWrapper, { borderColor: colors.border }]}
                   >
                     <TextInput
                       style={[localStyles.input, { color: colors.text }]}
                       placeholder="95"
                       placeholderTextColor={colors.textSecondary}
-                      keyboardType="numeric"
+                      keyboardType="number-pad"
                       value={sugarLevel}
                       onChangeText={setSugarLevel}
                     />
-                    <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
-                      mg/dL
-                    </Text>
+                    <Text style={{ color: colors.textSecondary, fontSize: 12 }}>mg/dL</Text>
                   </View>
                 </View>
 
-                {/* Measurement Type */}
-                <Text
-                  style={[localStyles.label, { color: colors.textSecondary }]}
-                >
-                  {t('sugar.measurementType')}
+                <Text style={[localStyles.label, { color: colors.textSecondary }]}>
+                  {t("sugar.measurementType")}
                 </Text>
                 <View
                   style={[
@@ -197,7 +295,7 @@ const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
                   <Pressable
                     style={[
                       localStyles.toggleButton,
-                      measurementType === "Açlık" && {
+                      measurementType === "fasting" && {
                         backgroundColor: colors.surface,
                         shadowColor: "#000",
                         shadowOpacity: 0.1,
@@ -205,23 +303,23 @@ const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
                         elevation: 2,
                       },
                     ]}
-                    onPress={() => setMeasurementType("Açlık")}
+                    onPress={() => setMeasurementType("fasting")}
                   >
                     <Text
                       style={{
                         color:
-                          measurementType === "Açlık"
+                          measurementType === "fasting"
                             ? colors.text
                             : colors.textSecondary,
                       }}
                     >
-                      {t('sugar.fasting')}
+                      {t("sugar.fasting")}
                     </Text>
                   </Pressable>
                   <Pressable
                     style={[
                       localStyles.toggleButton,
-                      measurementType === "Tokluk" && {
+                      measurementType === "postprandial" && {
                         backgroundColor: colors.surface,
                         shadowColor: "#000",
                         shadowOpacity: 0.1,
@@ -229,27 +327,24 @@ const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
                         elevation: 2,
                       },
                     ]}
-                    onPress={() => setMeasurementType("Tokluk")}
+                    onPress={() => setMeasurementType("postprandial")}
                   >
                     <Text
                       style={{
                         color:
-                          measurementType === "Tokluk"
+                          measurementType === "postprandial"
                             ? colors.text
                             : colors.textSecondary,
                       }}
                     >
-                      {t('sugar.postprandial')}
+                      {t("sugar.postprandial")}
                     </Text>
                   </Pressable>
                 </View>
 
-                {/* Note */}
                 <View style={localStyles.inputGroup}>
-                  <Text
-                    style={[localStyles.label, { color: colors.textSecondary }]}
-                  >
-                    {t('sugar.note')}
+                  <Text style={[localStyles.label, { color: colors.textSecondary }]}>
+                    {t("sugar.note")}
                   </Text>
                   <View
                     style={[
@@ -270,7 +365,7 @@ const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
                           textAlignVertical: "top",
                         },
                       ]}
-                      placeholder={t('sugar.notePlaceholder')}
+                      placeholder={t("sugar.notePlaceholder")}
                       placeholderTextColor={colors.textSecondary}
                       multiline
                       value={note}
@@ -279,16 +374,30 @@ const AddSugarMeasurementModal: React.FC<AddSugarMeasurementModalProps> = ({
                   </View>
                 </View>
 
-                {/* Save Button */}
+                {validationError && (
+                  <Text style={[localStyles.errorText, { color: colors.error }]}>
+                    {validationError}
+                  </Text>
+                )}
+
                 <Pressable
-                  style={[
-                    localStyles.saveButton,
-                    { backgroundColor: colors.iconGreen },
-                  ]}
+                  style={[localStyles.saveButton, { backgroundColor: colors.iconGreen }]}
                   onPress={handleSave}
                 >
-                  <Text style={localStyles.saveButtonText}>{t('sugar.saveMeasurement')}</Text>
+                  <Text style={localStyles.saveButtonText}>
+                    {t("sugar.saveMeasurement")}
+                  </Text>
                 </Pressable>
+
+                {pickerMode && (
+                  <DateTimePicker
+                    value={customDateTime}
+                    mode={pickerMode}
+                    is24Hour
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    onChange={handlePickerChange}
+                  />
+                )}
               </View>
             </KeyboardAvoidingView>
           </TouchableWithoutFeedback>
@@ -344,13 +453,18 @@ const localStyles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 6,
   },
-  row: {
+  customTimeContainer: {
     flexDirection: "row",
-    gap: 15,
+    gap: 12,
     marginBottom: 20,
   },
-  halfInput: {
+  customTimeButton: {
     flex: 1,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 4,
   },
   inputGroup: {
     marginBottom: 20,
@@ -367,11 +481,17 @@ const localStyles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
   },
+  errorText: {
+    marginTop: -4,
+    marginBottom: 10,
+    fontSize: 13,
+    fontWeight: "500",
+  },
   saveButton: {
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 4,
   },
   saveButtonText: {
     color: "#fff",
